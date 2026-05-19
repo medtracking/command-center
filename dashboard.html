@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="version" content="20260519_205009">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Command Center</title>
@@ -333,9 +334,91 @@ td select{cursor:pointer}
 .gcal-event-cal{font-size:10px;color:var(--text-muted);margin-top:1px}
 .gcal-section{margin-bottom:1rem}
 .gcal-section-label{font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.4rem;display:flex;align-items:center;gap:6px}
+
+/* ══ LOGIN SCREEN ══ */
+#login-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:#090909;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Montserrat',sans-serif;
+}
+#login-screen.hidden{display:none}
+.login-box{
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;width:300px;
+}
+.login-logo{
+  width:48px;height:48px;border-radius:14px;
+  background:linear-gradient(135deg,#2d8f8f,#7a6aaa);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:1.5rem;
+}
+.login-logo svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.login-title{font-size:20px;font-weight:700;color:#edecea;letter-spacing:0.02em;margin-bottom:0.3rem}
+.login-sub{font-size:11px;color:#525252;font-weight:500;letter-spacing:0.05em;margin-bottom:2.5rem}
+.pin-dots{display:flex;gap:18px;margin-bottom:2.2rem}
+.pin-dot{
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid #333;background:transparent;
+  transition:all 0.15s;
+}
+.pin-dot.filled{background:#4db8b8;border-color:#4db8b8}
+.pin-dot.error{background:#e07070;border-color:#e07070;animation:shake 0.3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%}
+.pin-btn{
+  background:#1a1a1a;border:none;border-radius:50%;
+  color:#edecea;font-family:'Montserrat',sans-serif;
+  font-size:22px;font-weight:400;
+  width:80px;height:80px;
+  margin:0 auto;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:all 0.12s;user-select:none;
+}
+.pin-btn:hover{background:#252525}
+.pin-btn:active{background:#2e2e2e;transform:scale(0.92)}
+.pin-btn.wide{grid-column:span 2;border-radius:50px;width:100%;height:80px}
+.pin-btn.del{font-size:28px;color:#888;background:#1a1a1a}
+.pin-btn.del:hover{color:#e07070;background:#1f1818}
+.pin-btn.clear{font-size:18px;font-weight:700;color:#888;background:#1a1a1a}
+.pin-btn.clear:hover{color:#e07070;background:#1f1818}
+.pin-error{font-size:11px;color:#e07070;font-weight:600;letter-spacing:0.05em;height:16px;margin-top:-0.5rem;margin-bottom:0.5rem;text-align:center}
 </style>
 </head>
 <body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+    </div>
+    <div class="login-title">Command Center</div>
+    <div class="login-sub">ENTER YOUR PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn del" onclick="pinDelete()">&lt;</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn clear" onclick="pinClear()">✕</button>
+    </div>
+  </div>
+</div>
 <div class="app">
 
 <!-- ═══ SIDEBAR ═══ -->
@@ -1264,53 +1347,14 @@ if(!localStorage.getItem('cc2_seeded')){
 
 // ═══ GOOGLE CALENDAR SYNC ═══
 const GCAL_CLIENT_ID = '12201243289-24jojatvnsth37dhpsvjue7t2o1htssb.apps.googleusercontent.com';
+const GCAL_API_KEY = '';
+const GCAL_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
 const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
-const GCAL_KEY = 'cc2_gcal';
 
-let gcalTokenClient = null;
-let gcalAccessToken = localStorage.getItem(GCAL_KEY + '_token') || null;
+let gapiInited = false;
+let gisInited = false;
+let tokenClient = null;
 let gcalEvents = [];
-let gcalLoaded = false;
-
-// Load Google Identity Services
-function loadGcalScript() {
-  if (document.getElementById('gsi-script')) return;
-  const s = document.createElement('script');
-  s.id = 'gsi-script';
-  s.src = 'https://accounts.google.com/gsi/client';
-  s.onload = () => { gcalLoaded = true; initTokenClient(); if (gcalAccessToken) gcalSync(); };
-  s.onerror = () => setGcalStatus('error', 'Failed to load Google sign-in');
-  document.head.appendChild(s);
-}
-
-function initTokenClient() {
-  if (!window.google) return;
-  gcalTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GCAL_CLIENT_ID,
-    scope: GCAL_SCOPES,
-    callback: (resp) => {
-      if (resp.error) { setGcalStatus('error', 'Auth error: ' + resp.error); return; }
-      gcalAccessToken = resp.access_token;
-      localStorage.setItem(GCAL_KEY + '_token', gcalAccessToken);
-      gcalSync();
-    },
-  });
-}
-
-function gcalConnect() {
-  if (!gcalLoaded) { loadGcalScript(); setGcalStatus('syncing', 'Loading Google sign-in...'); return; }
-  if (!gcalTokenClient) { initTokenClient(); }
-  gcalTokenClient.requestAccessToken({ prompt: 'consent' });
-}
-
-function gcalDisconnect() {
-  gcalAccessToken = null;
-  localStorage.removeItem(GCAL_KEY + '_token');
-  gcalEvents = [];
-  setGcalStatus('disconnected', 'Google Calendar not connected');
-  updateDashboard();
-  renderGcalPage();
-}
 
 function setGcalStatus(state, msg) {
   const dot = document.getElementById('gcal-dot');
@@ -1322,86 +1366,136 @@ function setGcalStatus(state, msg) {
   const pgConn = document.getElementById('gcal-page-connect-btn');
   const pgSync = document.getElementById('gcal-page-sync-btn');
   if (!dot) return;
-  dot.className = 'gcal-dot ' + (state === 'connected' ? 'connected' : state === 'syncing' ? 'syncing' : state === 'error' ? 'error' : '');
+  dot.className = 'gcal-dot ' + (state==='connected'?'connected':state==='syncing'?'syncing':state==='error'?'error':'');
   txt.textContent = msg;
-  txt.className = 'gcal-status ' + (state === 'connected' ? 'connected' : state === 'error' ? 'error' : '');
-  const isConn = state === 'connected';
-  conn.style.display = isConn ? 'none' : '';
-  sync.style.display = isConn ? '' : 'none';
-  disc.style.display = isConn ? '' : 'none';
-  if (badge) badge.style.display = isConn ? '' : 'none';
-  if (pgConn) pgConn.style.display = isConn ? 'none' : '';
-  if (pgSync) pgSync.style.display = isConn ? '' : 'none';
+  txt.className = 'gcal-status ' + (state==='connected'?'connected':state==='error'?'error':'');
+  const isConn = state==='connected';
+  if(conn) conn.style.display = isConn?'none':'';
+  if(sync) sync.style.display = isConn?'':'none';
+  if(disc) disc.style.display = isConn?'':'none';
+  if(badge) badge.style.display = isConn?'':'none';
+  if(pgConn) pgConn.style.display = isConn?'none':'';
+  if(pgSync) pgSync.style.display = isConn?'':'none';
+}
+
+// Called when gapi.js loads
+function gapiLoaded() {
+  gapi.load('client', async () => {
+    await gapi.client.init({ discoveryDocs: [GCAL_DISCOVERY_DOC] });
+    gapiInited = true;
+    maybeEnableSync();
+  });
+}
+
+// Called when GIS (Google Identity Services) loads
+function gisLoaded() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { setGcalStatus('error', 'Auth error: ' + resp.error); return; }
+      await gcalSync();
+    },
+  });
+  gisInited = true;
+  maybeEnableSync();
+}
+
+function maybeEnableSync() {
+  if (!gapiInited || !gisInited) return;
+  // If we already have a token stored, try a silent refresh
+  const saved = localStorage.getItem('cc2_gcal_token');
+  if (saved) {
+    gapi.client.setToken({ access_token: saved });
+    gcalSync();
+  }
+}
+
+function gcalConnect() {
+  if (!gapiInited || !gisInited) {
+    setGcalStatus('error', 'Still loading — try again in a moment');
+    return;
+  }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function gcalDisconnect() {
+  const token = gapi.client.getToken();
+  if (token) google.accounts.oauth2.revoke(token.access_token, () => {});
+  gapi.client.setToken('');
+  localStorage.removeItem('cc2_gcal_token');
+  gcalEvents = [];
+  setGcalStatus('disconnected', 'Google Calendar not connected');
+  updateDashboard();
+  renderGcalPage();
 }
 
 async function gcalSync() {
-  if (!gcalAccessToken) { gcalConnect(); return; }
+  if (!gapiInited) { setGcalStatus('error', 'API not ready yet'); return; }
   setGcalStatus('syncing', 'Syncing...');
   try {
+    const token = gapi.client.getToken();
+    if (token) localStorage.setItem('cc2_gcal_token', token.access_token);
+
     const now = new Date();
     const start = new Date(now); start.setHours(0,0,0,0);
-    const end = new Date(now); end.setDate(end.getDate() + 14); end.setHours(23,59,59,999);
-    const url = `https://www.googleapis.com/calendar/v3/calendarList`;
-    const calResp = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
-    if (calResp.status === 401) { gcalAccessToken = null; localStorage.removeItem(GCAL_KEY + '_token'); gcalConnect(); return; }
-    const calData = await calResp.json();
-    const cals = (calData.items || []).filter(c => c.selected !== false);
+    const end = new Date(now); end.setDate(end.getDate()+14); end.setHours(23,59,59,999);
+
+    // Get calendar list
+    const calResp = await gapi.client.calendar.calendarList.list();
+    const cals = (calResp.result.items || []).filter(c => c.selected !== false);
+
     let allEvents = [];
     for (const cal of cals) {
-      const evUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=50`;
-      const evResp = await fetch(evUrl, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
-      if (!evResp.ok) continue;
-      const evData = await evResp.json();
-      const items = (evData.items || []).filter(e => e.status !== 'cancelled');
-      items.forEach(e => { e._calName = cal.summary; e._calColor = cal.backgroundColor || '#4db8b8'; });
-      // Keep only timed events and all-day events
+      const evResp = await gapi.client.calendar.events.list({
+        calendarId: cal.id,
+        timeMin: start.toISOString(),
+        timeMax: end.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 50,
+      });
+      const items = (evResp.result.items || []).filter(e => e.status !== 'cancelled');
+      // Only timed + all-day events
       const filtered = items.filter(e => e.start && (e.start.dateTime || e.start.date));
+      filtered.forEach(e => { e._calName = cal.summary; e._calColor = cal.backgroundColor || '#4db8b8'; });
       allEvents = allEvents.concat(filtered);
     }
-    // Deduplicate by id
+
+    // Deduplicate
     const seen = new Set();
-    gcalEvents = allEvents.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; });
+    gcalEvents = allEvents.filter(e => { if(seen.has(e.id)) return false; seen.add(e.id); return true; });
     gcalEvents.sort((a,b) => {
       const da = a.start.dateTime || a.start.date;
       const db = b.start.dateTime || b.start.date;
       return da > db ? 1 : -1;
     });
+
     const count = gcalEvents.length;
     setGcalStatus('connected', `Synced ${count} event${count!==1?'s':''} · ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`);
     updateDashboard();
     renderGcalPage();
   } catch(e) {
     console.error('GCal sync error:', e);
-    setGcalStatus('error', 'Sync failed — check console');
+    if (e.status === 401) {
+      localStorage.removeItem('cc2_gcal_token');
+      gapi.client.setToken('');
+      setGcalStatus('error', 'Session expired — reconnect');
+    } else {
+      setGcalStatus('error', 'Sync failed — check console');
+    }
   }
 }
 
-function gcalToday() {
-  const t = today();
-  return gcalEvents.filter(e => {
-    const d = e.start.dateTime ? e.start.dateTime.slice(0,10) : e.start.date;
-    return d === t;
-  });
-}
-
-function gcalTomorrow() {
-  const tm = tomorrow();
-  return gcalEvents.filter(e => {
-    const d = e.start.dateTime ? e.start.dateTime.slice(0,10) : e.start.date;
-    return d === tm;
-  });
-}
-
 function gcalFmtTime(e) {
-  if (e.start.date && !e.start.dateTime) return null; // all-day
-  const dt = new Date(e.start.dateTime);
-  return dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  if (!e.start.dateTime) return null;
+  return new Date(e.start.dateTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 }
 
-function gcalEventHtml(e, colorClass) {
+function gcalEventHtml(e) {
   const isAllDay = !e.start.dateTime;
   const time = isAllDay ? 'All Day' : gcalFmtTime(e);
-  const timeClass = isAllDay ? 'gcal-event-time allday' : `gcal-event-time`;
+  const timeClass = isAllDay ? 'gcal-event-time allday' : 'gcal-event-time';
   return `<div class="gcal-event">
     <span class="${timeClass}" style="${!isAllDay?'color:'+esc(e._calColor||'var(--accent-gold)'):''}"> ${esc(time)}</span>
     <div class="gcal-event-body">
@@ -1413,84 +1507,66 @@ function gcalEventHtml(e, colorClass) {
 
 function renderGcalPage() {
   const el = document.getElementById('gcal-page-content'); if(!el) return;
-  if (!gcalAccessToken || !gcalEvents.length) {
-    el.innerHTML = gcalAccessToken
+  const token = gapi.client && gapi.client.getToken && gapi.client.getToken();
+  if (!token || !gcalEvents.length) {
+    el.innerHTML = token
       ? '<div class="empty" style="padding:2rem">No upcoming events found in the next 14 days.</div>'
-      : `<div class="coming-soon"><div class="cs-icon">📅</div><h3>Connect Google Calendar</h3><p>Click "Connect" above to sign in with Google and sync your appointments and all-day events.</p></div>`;
+      : '<div class="coming-soon"><div class="cs-icon">📅</div><h3>Connect Google Calendar</h3><p>Click "Connect" above to sign in with Google and sync your appointments and all-day events.</p></div>';
     return;
   }
-  const t = today(), tm = tomorrow();
-  const todayEvts = gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===t);
-  const tmEvts = gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===tm);
-  const futureEvts = gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)>tm);
-  let html = '';
-  if (todayEvts.length) {
-    html += `<div class="gcal-section"><div class="gcal-section-label"><span class="ctdot danny" style="display:inline-block"></span>Today</div>${todayEvts.map(e=>gcalEventHtml(e)).join('')}</div>`;
-  }
-  if (tmEvts.length) {
-    html += `<div class="gcal-section"><div class="gcal-section-label"><span class="ctdot gold" style="display:inline-block"></span>Tomorrow</div>${tmEvts.map(e=>gcalEventHtml(e)).join('')}</div>`;
-  }
-  if (futureEvts.length) {
-    // Group by date
-    const byDate = {};
+  const t=today(), tm=tomorrow();
+  const todayEvts=gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===t);
+  const tmEvts=gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===tm);
+  const futureEvts=gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)>tm);
+  let html='';
+  if(todayEvts.length) html+=`<div class="gcal-section"><div class="gcal-section-label"><span class="ctdot danny" style="display:inline-block"></span>Today</div>${todayEvts.map(gcalEventHtml).join('')}</div>`;
+  if(tmEvts.length) html+=`<div class="gcal-section"><div class="gcal-section-label"><span class="ctdot gold" style="display:inline-block"></span>Tomorrow</div>${tmEvts.map(gcalEventHtml).join('')}</div>`;
+  if(futureEvts.length){
+    const byDate={};
     futureEvts.forEach(e=>{const d=(e.start.dateTime||e.start.date).slice(0,10);if(!byDate[d])byDate[d]=[];byDate[d].push(e)});
     Object.keys(byDate).sort().forEach(d=>{
-      const label = new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-      html += `<div class="gcal-section"><div class="gcal-section-label"><span style="color:var(--text-muted)">${esc(label)}</span></div>${byDate[d].map(e=>gcalEventHtml(e)).join('')}</div>`;
+      const label=new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      html+=`<div class="gcal-section"><div class="gcal-section-label"><span style="color:var(--text-muted)">${esc(label)}</span></div>${byDate[d].map(gcalEventHtml).join('')}</div>`;
     });
   }
-  el.innerHTML = html || '<div class="empty" style="padding:2rem">No events in the next 14 days.</div>';
+  el.innerHTML=html||'<div class="empty" style="padding:2rem">No events in the next 14 days.</div>';
 }
 
-// Patch updateDashboard to also inject GCal events into the dashboard
+// Patch updateDashboard to inject GCal events
 function updateDashboard() {
   _updateDashboard();
-  // Inject GCal today events into Danny's appt panel
-  const todayGcal = gcalToday();
-  const tmGcal = gcalTomorrow();
-  if (todayGcal.length) {
-    const dannyApptEl = document.getElementById('dash-danny-appts');
-    if (dannyApptEl) {
-      const gcalHtml = todayGcal.map(e=>{
-        const isAllDay = !e.start.dateTime;
-        const time = isAllDay ? 'All Day' : gcalFmtTime(e);
+  if (!gcalEvents.length) return;
+  const t=today(), tm=tomorrow();
+  const todayGcal=gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===t);
+  const tmGcal=gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===tm);
+  if(todayGcal.length){
+    const el=document.getElementById('dash-danny-appts');
+    if(el){
+      const gcalHtml=todayGcal.map(e=>{
+        const isAllDay=!e.start.dateTime;
+        const time=isAllDay?'All Day':gcalFmtTime(e);
         return `<div class="appt-row"><span class="appt-time" style="color:var(--accent-gold);min-width:52px">${esc(time)}</span><div><div class="appt-provider">${esc(e.summary||'(No title)')}</div><div class="appt-loc" style="color:var(--accent-gold);opacity:0.7">${esc(e._calName||'Google Calendar')}</div></div></div>`;
       }).join('');
-      const existing = dannyApptEl.innerHTML;
-      if (existing.includes('No appointments today')) {
-        dannyApptEl.innerHTML = gcalHtml;
-      } else {
-        dannyApptEl.innerHTML = existing + '<div class="divider"></div>' + gcalHtml;
-      }
+      const existing=el.innerHTML;
+      el.innerHTML=existing.includes('No appointments')?gcalHtml:existing+'<div class="divider"></div>'+gcalHtml;
     }
   }
-  // Inject GCal tomorrow into looking-ahead
-  if (tmGcal.length) {
-    const aheadEl = document.getElementById('dash-tomorrow');
-    if (aheadEl) {
-      const gcalHtml = tmGcal.map(e=>{
-        const isAllDay = !e.start.dateTime;
-        const time = isAllDay ? 'All Day' : gcalFmtTime(e);
+  if(tmGcal.length){
+    const el=document.getElementById('dash-tomorrow');
+    if(el){
+      const gcalHtml=tmGcal.map(e=>{
+        const isAllDay=!e.start.dateTime;
+        const time=isAllDay?'All Day':gcalFmtTime(e);
         return `<div class="ahead-item"><span class="ahead-icon">📅</span><span style="font-size:10px;font-weight:700;color:var(--accent-gold)">GCAL</span><span style="font-weight:600;color:var(--text-primary)">${esc(time)}</span><span style="color:var(--text-secondary)">${esc(e.summary||'(No title)')}</span></div>`;
       }).join('');
-      const existing = aheadEl.innerHTML;
-      if (existing.includes('Nothing scheduled')) {
-        aheadEl.innerHTML = gcalHtml;
-      } else {
-        aheadEl.innerHTML = existing + gcalHtml;
-      }
+      const existing=el.innerHTML;
+      el.innerHTML=existing.includes('Nothing scheduled')?gcalHtml:existing+gcalHtml;
     }
   }
 }
-// updateDashboardWithGcal is already named updateDashboard via the wrapper below
 
-// Auto-load GIS script and try to sync if we have a saved token
-loadGcalScript();
-if (gcalAccessToken) {
-  setGcalStatus('syncing', 'Reconnecting to Google Calendar...');
-}
-
-renderAll();
+// Only render if already authenticated
+if(checkSession()) renderAll();
 </script>
 </body>
 </html>
