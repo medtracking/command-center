@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#090909;
+  --bg-base:#0f0f0f;
+  --bg-card:#161616;
+  --bg-card2:#1e1e1e;
+  --bg-hover:#242424;
+  --border:#2a2a2a;
+  --border-light:#363636;
+  --text-primary:#edecea;
+  --text-secondary:#8a8a8a;
+  --text-muted:#525252;
+  /* Danny = teal */
+  --danny:#4db8b8;
+  --danny-bg:rgba(77,184,184,0.10);
+  --danny-border:rgba(77,184,184,0.22);
+  /* Grandma = lavender/rose */
+  --grandma:#a888cc;
+  --grandma-bg:rgba(168,136,204,0.10);
+  --grandma-border:rgba(168,136,204,0.22);
+  /* Accents */
+  --accent-gold:#c8a96e;
+  --accent-rose:#c87878;
+  --urgent:#e07070;
+  --urgent-bg:rgba(224,112,112,0.12);
+  --warn:#c8a040;
+  --warn-bg:rgba(200,160,64,0.12);
+  --success:#60a878;
+  --success-bg:rgba(96,168,120,0.12);
+  --info:#60a0c0;
+  --info-bg:rgba(96,160,192,0.12);
+  --radius:10px;
+  --radius-sm:6px;
+  --radius-lg:14px;
+  --sidebar:224px;
+  --font:'Montserrat',sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--text-primary);background:var(--bg-deep);overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--font)}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.sidebar-header{padding:1.3rem 1.1rem 1rem;border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2d8f8f,#7a6aaa);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.logo-text{font-size:13px;font-weight:700;letter-spacing:0.03em;color:var(--text-primary);line-height:1.2}
+.logo-sub{font-size:9px;font-weight:500;color:var(--text-muted);letter-spacing:0.07em;text-transform:uppercase;margin-top:2px}
+.sidebar-date{margin-top:0.6rem;font-size:10px;color:var(--text-muted);font-weight:500}
+.nav-group{padding:0.5rem 0}
+.nav-group-label{font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);padding:0.35rem 1.1rem 0.3rem;display:flex;align-items:center;gap:6px}
+.nav-group-label .nlabel-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.nav-group-label .nlabel-dot.danny{background:var(--danny)}
+.nav-group-label .nlabel-dot.grandma{background:var(--grandma)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:0.44rem 1.1rem;font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all 0.14s;position:relative;user-select:none}
+.nav-item:hover{color:var(--text-primary);background:var(--bg-hover)}
+.nav-item.active-danny{color:var(--danny);background:var(--danny-bg)}
+.nav-item.active-danny::before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:2.5px;background:var(--danny);border-radius:0 2px 2px 0}
+.nav-item.active-grandma{color:var(--grandma);background:var(--grandma-bg)}
+.nav-item.active-grandma::before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:2.5px;background:var(--grandma);border-radius:0 2px 2px 0}
+.nav-item.active-neutral{color:var(--accent-gold);background:rgba(200,169,110,0.09)}
+.nav-item.active-neutral::before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:2.5px;background:var(--accent-gold);border-radius:0 2px 2px 0}
+.nav-icon{width:16px;height:16px;flex-shrink:0;opacity:0.75}
+.nav-item.active-danny .nav-icon,.nav-item.active-grandma .nav-icon,.nav-item.active-neutral .nav-icon{opacity:1}
+.nav-badge{margin-left:auto;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;background:var(--urgent-bg);color:var(--urgent)}
+.nav-badge.warn{background:var(--warn-bg);color:var(--warn)}
+.sidebar-footer{margin-top:auto;padding:0.75rem 1.1rem;border-top:1px solid var(--border);font-size:10px;color:var(--text-muted);font-weight:500}
+
+/* ══ MAIN ══ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg-base)}
+.page{display:none;flex-direction:column;height:100%;overflow:hidden}
+.page.active{display:flex}
+
+/* ══ PAGE HEADER ══ */
+.page-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);flex-shrink:0}
+.page-title{font-size:16px;font-weight:700;letter-spacing:0.02em;display:flex;align-items:center;gap:9px}
+.person-pill{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.04em}
+.person-pill.danny{background:var(--danny-bg);color:var(--danny);border:1px solid var(--danny-border)}
+.person-pill.grandma{background:var(--grandma-bg);color:var(--grandma);border:1px solid var(--grandma-border)}
+.page-subtitle{font-size:11px;color:var(--text-muted);margin-top:2px;font-weight:400}
+.header-actions{display:flex;gap:8px;align-items:center}
+
+/* ══ BUTTONS ══ */
+.btn{border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--bg-card2);color:var(--text-secondary);padding:0.38rem 0.8rem;font-size:11px;font-weight:600;letter-spacing:0.03em;display:inline-flex;align-items:center;gap:5px;transition:all 0.14s}
+.btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.btn.danny{background:rgba(45,143,143,0.18);color:var(--danny);border-color:var(--danny-border)}
+.btn.danny:hover{background:rgba(45,143,143,0.28)}
+.btn.grandma{background:rgba(122,106,170,0.18);color:var(--grandma);border-color:var(--grandma-border)}
+.btn.grandma:hover{background:rgba(122,106,170,0.28)}
+.btn.sm{padding:0.26rem 0.65rem;font-size:10px}
+
+/* ══ PAGE CONTENT ══ */
+.page-content{flex:1;overflow-y:auto;padding:1.2rem 1.5rem}
+
+/* ══ CARDS ══ */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.1rem}
+.card.danny-card{border-color:var(--danny-border)}
+.card.grandma-card{border-color:var(--grandma-border)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.7rem}
+.card-title{font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.ctdot{width:6px;height:6px;border-radius:50%}
+.ctdot.urgent{background:var(--urgent)}
+.ctdot.warn{background:var(--warn)}
+.ctdot.danny{background:var(--danny)}
+.ctdot.grandma{background:var(--grandma)}
+.ctdot.gold{background:var(--accent-gold)}
+.ctdot.info{background:var(--info)}
+
+/* ══ DASHBOARD ══ */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem}
+.dash-grid .span2{grid-column:span 2}
+.dash-person-header{display:flex;align-items:center;gap:8px;margin:0.9rem 0 0.5rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border)}
+.dash-person-header .dph-label{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+.dash-person-header.danny .dph-label{color:var(--danny)}
+.dash-person-header.grandma .dph-label{color:var(--grandma)}
+.dash-person-header .dph-line{flex:1;height:1px;background:var(--border)}
+
+/* ══ STAT STRIP ══ */
+.stat-strip{display:flex;gap:0.7rem;margin-bottom:1rem}
+.stat-chip{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:0.6rem 0.75rem;display:flex;flex-direction:column;align-items:center;text-align:center}
+.stat-n{font-size:22px;font-weight:700;line-height:1}
+.stat-l{font-size:9px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-muted);margin-top:3px}
+.stat-chip.sc-urgent .stat-n{color:var(--urgent)}
+.stat-chip.sc-warn .stat-n{color:var(--warn)}
+.stat-chip.sc-danny .stat-n{color:var(--danny)}
+.stat-chip.sc-grandma .stat-n{color:var(--grandma)}
+.stat-chip.sc-ok .stat-n{color:var(--success)}
+
+/* ══ PRIORITY ITEMS ══ */
+.priority-item{display:flex;align-items:flex-start;gap:9px;padding:0.48rem 0;border-bottom:1px solid var(--border)}
+.priority-item:last-child{border-bottom:none;padding-bottom:0}
+.pi-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.pi-body{flex:1;min-width:0}
+.pi-title{font-size:12px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-meta{font-size:10px;color:var(--text-muted);margin-top:1px;font-weight:500}
+.pi-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
+
+/* ══ BADGES ══ */
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:0.03em;white-space:nowrap}
+.b-urgent{background:var(--urgent-bg);color:var(--urgent)}
+.b-warn{background:var(--warn-bg);color:var(--warn)}
+.b-ok{background:var(--success-bg);color:var(--success)}
+.b-info{background:var(--info-bg);color:var(--info)}
+.b-danny{background:var(--danny-bg);color:var(--danny)}
+.b-grandma{background:var(--grandma-bg);color:var(--grandma)}
+.b-muted{background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)}
+.b-gold{background:rgba(200,169,110,0.12);color:var(--accent-gold)}
+/* person */
+.pb{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.pb-danny{background:var(--danny-bg);color:var(--danny)}
+.pb-grandma{background:var(--grandma-bg);color:var(--grandma)}
+.pb-you{background:rgba(96,160,192,0.12);color:var(--info)}
+.pb-d1{background:rgba(200,169,110,0.12);color:var(--accent-gold)}
+.pb-d2{background:rgba(200,120,120,0.12);color:var(--accent-rose)}
+
+/* ══ MED ALERTS ══ */
+.med-alert{display:flex;align-items:center;gap:9px;background:var(--warn-bg);border:1px solid rgba(200,160,64,0.2);border-radius:var(--radius-sm);padding:0.48rem 0.75rem;margin-bottom:0.35rem;font-size:11px}
+.med-alert:last-child{margin-bottom:0}
+.med-alert-name{font-weight:700;color:var(--text-primary)}
+.med-alert-detail{color:var(--text-secondary);margin-left:3px}
+
+/* ══ APPT ROWS ══ */
+.appt-row{display:flex;align-items:center;gap:8px;padding:0.44rem 0;border-bottom:1px solid var(--border);font-size:12px}
+.appt-row:last-child{border-bottom:none;padding-bottom:0}
+.appt-time{font-size:11px;font-weight:700;min-width:46px}
+.appt-time.danny{color:var(--danny)}
+.appt-time.grandma{color:var(--grandma)}
+.appt-provider{font-weight:600;color:var(--text-primary)}
+.appt-loc{font-size:10px;color:var(--text-muted)}
+
+/* ══ AHEAD ══ */
+.ahead-item{display:flex;align-items:center;gap:7px;font-size:11px;padding:0.3rem 0;border-bottom:1px solid var(--border)}
+.ahead-item:last-child{border-bottom:none}
+.ahead-icon{color:var(--text-muted)}
+
+/* ══ NOTES ══ */
+.note-item{padding:0.42rem 0;border-bottom:1px solid var(--border);font-size:12px}
+.note-item:last-child{border-bottom:none;padding-bottom:0}
+.note-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px}
+.note-text{color:var(--text-primary);font-weight:400;line-height:1.5}
+
+/* ══ TABLES ══ */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
+thead{position:sticky;top:0;z-index:2}
+th{font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);background:var(--bg-card2);text-align:left;white-space:nowrap}
+td{padding:0.48rem 0.75rem;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text-primary)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.012)}
+td input[type=text],td select{background:transparent;border:1px solid transparent;border-radius:4px;color:var(--text-primary);font-size:12px;padding:2px 5px;width:100%;font-family:var(--font);font-weight:500}
+td input[type=text]:focus,td select:focus{border-color:var(--danny);outline:none;background:var(--bg-card2)}
+td select{cursor:pointer}
+.row-delete{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px 5px;border-radius:4px;font-size:11px;transition:all 0.1s}
+.row-delete:hover{color:var(--urgent);background:var(--urgent-bg)}
+
+/* section strips */
+.sec-strip{width:3px;border-radius:3px;height:16px;flex-shrink:0;display:inline-block;margin-right:5px;vertical-align:middle}
+.ss-health{background:var(--urgent)} .ss-biz{background:var(--info)} .ss-house{background:var(--accent-gold)}
+.ss-atc{background:var(--danny)} .ss-misc{background:var(--text-muted)} .ss-personal{background:var(--grandma)}
+
+/* section tabs */
+.section-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;background:var(--bg-card)}
+.stab{padding:0.55rem 0.95rem;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.14s}
+.stab:hover{color:var(--text-primary)}
+.stab.active-danny{color:var(--danny);border-bottom-color:var(--danny)}
+.stab.active-grandma{color:var(--grandma);border-bottom-color:var(--grandma)}
+.stab.active-neutral{color:var(--accent-gold);border-bottom-color:var(--accent-gold)}
+
+/* tasks controls */
+.tasks-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0.75rem 1.2rem;border-bottom:1px solid var(--border);background:var(--bg-card);flex-shrink:0}
+.tasks-controls input,.tasks-controls select{border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--bg-card2);color:var(--text-primary);padding:0.33rem 0.65rem;font-size:11px;font-weight:500;outline:none;font-family:var(--font)}
+.tasks-controls input{min-width:150px;flex:1}
+.tasks-controls input::placeholder{color:var(--text-muted)}
+.tasks-controls input:focus,.tasks-controls select:focus{border-color:var(--danny)}
+
+/* ══ MED CARDS ══ */
+.meds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0.75rem}
+.med-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0.9rem 1rem;transition:border-color 0.14s}
+.med-card.danny-theme{border-color:var(--danny-border)}
+.med-card.grandma-theme{border-color:var(--grandma-border)}
+.med-card.refill-soon{border-color:rgba(200,160,64,0.4)!important}
+.med-name{font-size:13px;font-weight:700;color:var(--text-primary)}
+.med-dose{font-size:11px;font-weight:600;margin-top:2px}
+.med-dose.danny{color:var(--danny)}
+.med-dose.grandma{color:var(--grandma)}
+.med-divider{height:1px;background:var(--border);margin:0.5rem 0}
+.med-row{display:flex;justify-content:space-between;font-size:11px;margin-top:0.28rem;color:var(--text-secondary)}
+.med-row span:last-child{color:var(--text-primary);font-weight:500}
+.med-actions{display:flex;gap:6px;margin-top:0.6rem}
+.refill-label{font-size:9px;font-weight:700;color:var(--warn);letter-spacing:0.05em;text-transform:uppercase;background:var(--warn-bg);padding:2px 7px;border-radius:20px}
+.med-section-header{font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin:1rem 0 0.5rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+.med-section-header.danny{color:var(--danny)}
+.med-section-header.grandma{color:var(--grandma)}
+
+/* ══ CONDITIONS ══ */
+.cond-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0.9rem 1rem;margin-bottom:0.7rem;transition:border-color 0.14s}
+.cond-card.danny-theme{border-left:3px solid var(--danny)}
+.cond-card.grandma-theme{border-left:3px solid var(--grandma)}
+.cond-name{font-size:14px;font-weight:700}
+.cond-desc{font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.6}
+.cond-meds{display:flex;gap:5px;flex-wrap:wrap;margin-top:0.5rem}
+.cond-section-header{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin:1.2rem 0 0.5rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+.cond-section-header.danny{color:var(--danny)}
+.cond-section-header.grandma{color:var(--grandma)}
+
+/* ══ APPTS PAGE ══ */
+.appt-section-header{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin:1.2rem 0 0.5rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+.appt-section-header.danny{color:var(--danny)}
+.appt-section-header.grandma{color:var(--grandma)}
+.appt-section-header:first-child{margin-top:0}
+.appt-full{display:flex;gap:12px;padding:0.62rem 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.appt-full:last-child{border-bottom:none}
+.appt-date-box{min-width:50px;background:var(--bg-card2);border-radius:var(--radius-sm);padding:5px 7px;text-align:center;border:1px solid var(--border);flex-shrink:0}
+.appt-day{font-size:20px;font-weight:700;line-height:1}
+.appt-day.danny{color:var(--danny)}
+.appt-day.grandma{color:var(--grandma)}
+.appt-mon{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)}
+.appt-full-info{flex:1}
+.appt-full-title{font-size:13px;font-weight:700}
+.appt-full-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+.appt-prep{font-size:11px;background:var(--bg-card2);border-radius:4px;padding:4px 8px;margin-top:5px;color:var(--text-secondary);line-height:1.5}
+
+/* ══ EXPERIMENTS ══ */
+.exp-section-header{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.7rem 0.75rem 0.4rem;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border)}
+.exp-section-header.danny{color:var(--danny)}
+.exp-section-header.grandma{color:var(--grandma)}
+
+/* ══ INVENTORY ══ */
+.inv-location{font-size:11px;font-weight:600;color:var(--danny)}
+.inv-qty-low{color:var(--urgent);font-weight:700}
+
+/* ══ MODAL ══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:1.4rem 1.5rem;width:480px;max-width:95vw;max-height:88vh;overflow-y:auto}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:1rem;letter-spacing:0.02em;display:flex;align-items:center;gap:8px}
+.form-row{margin-bottom:0.65rem}
+.form-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;display:block}
+.form-input{width:100%;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--bg-card2);color:var(--text-primary);padding:0.42rem 0.7rem;font-size:12px;outline:none;font-family:var(--font);font-weight:500}
+.form-input:focus{border-color:var(--danny)}
+.form-input.grandma-focus:focus{border-color:var(--grandma)}
+.form-input.textarea{resize:vertical;min-height:68px}
+.form-row select.form-input{cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+
+/* ══ COMING SOON ══ */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;text-align:center;color:var(--text-muted);height:100%}
+.coming-soon .cs-icon{font-size:2.5rem;margin-bottom:1rem;opacity:0.4}
+.coming-soon h3{font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:0.4rem}
+.coming-soon p{font-size:12px;line-height:1.7;max-width:260px}
+.coming-soon .cs-badge{display:inline-block;margin-top:0.75rem;font-size:9px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:rgba(77,184,184,0.1);color:var(--danny)}
+
+/* ══ MISC ══ */
+.empty{text-align:center;padding:1.5rem;color:var(--text-muted);font-size:11px;font-weight:500}
+.divider{height:1px;background:var(--border);margin:0.7rem 0}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+/* ══ GCAL SYNC ══ */
+.gcal-bar{display:flex;align-items:center;gap:10px;padding:0.55rem 1.5rem;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-shrink:0}
+.gcal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text-muted)}
+.gcal-dot.connected{background:var(--success)}
+.gcal-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
+.gcal-dot.error{background:var(--urgent)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.gcal-status{color:var(--text-muted);font-weight:500}
+.gcal-status.connected{color:var(--success)}
+.gcal-status.error{color:var(--urgent)}
+.gcal-actions{display:flex;gap:6px;margin-left:auto}
+.gcal-event{display:flex;align-items:flex-start;gap:8px;padding:0.42rem 0;border-bottom:1px solid var(--border);font-size:12px}
+.gcal-event:last-child{border-bottom:none}
+.gcal-event-time{font-size:11px;font-weight:700;min-width:50px;color:var(--accent-gold)}
+.gcal-event-time.allday{color:var(--grandma);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding-top:2px}
+.gcal-event-body{flex:1}
+.gcal-event-title{font-weight:600;color:var(--text-primary)}
+.gcal-event-cal{font-size:10px;color:var(--text-muted);margin-top:1px}
+.gcal-section{margin-bottom:1rem}
+.gcal-section-label{font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.4rem;display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">Command Center</div>
+        <div class="logo-sub">Care &amp; Operations</div>
+      </div>
+    </div>
+    <div class="sidebar-date" id="sidebar-date"></div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Overview</div>
+    <div class="nav-item active-neutral" data-page="dashboard" data-theme="neutral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      Daily Priorities
+    </div>
+    <div class="nav-item" data-page="tasks" data-theme="neutral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Tasks
+      <span class="nav-badge" id="nav-badge-tasks" style="display:none">0</span>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label"><span class="nlabel-dot danny"></span>Danny's Health</div>
+    <div class="nav-item" data-page="danny-conditions" data-theme="danny">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2a4 4 0 014 4v1h1a1 1 0 010 2h-1v1a4 4 0 01-8 0V9H3a1 1 0 010-2h1V6a4 4 0 014-4z"/></svg>
+      Conditions
+    </div>
+    <div class="nav-item" data-page="danny-medications" data-theme="danny">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="2" width="10" height="12" rx="2"/><path d="M6 6h4M6 9h2"/></svg>
+      Medications
+      <span class="nav-badge warn" id="nav-badge-meds" style="display:none">0</span>
+    </div>
+    <div class="nav-item" data-page="danny-appointments" data-theme="danny">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+      Appointments
+    </div>
+    <div class="nav-item" data-page="danny-experiments" data-theme="danny">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 2v5L2 13h12L10 7V2M5 2h6"/></svg>
+      Things to Try
+    </div>
+    <div class="nav-item" data-page="danny-inventory" data-theme="danny">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="6" width="12" height="8" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg>
+      Med Inventory
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label"><span class="nlabel-dot grandma"></span>Grandma's Health</div>
+    <div class="nav-item" data-page="gma-conditions" data-theme="grandma">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2a4 4 0 014 4v1h1a1 1 0 010 2h-1v1a4 4 0 01-8 0V9H3a1 1 0 010-2h1V6a4 4 0 014-4z"/></svg>
+      Conditions
+    </div>
+    <div class="nav-item" data-page="gma-medications" data-theme="grandma">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="2" width="10" height="12" rx="2"/><path d="M6 6h4M6 9h2"/></svg>
+      Medications
+      <span class="nav-badge warn" id="nav-badge-gma-meds" style="display:none">0</span>
+    </div>
+    <div class="nav-item" data-page="gma-appointments" data-theme="grandma">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+      Appointments
+    </div>
+    <div class="nav-item" data-page="gma-experiments" data-theme="grandma">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 2v5L2 13h12L10 7V2M5 2h6"/></svg>
+      Things to Try
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Coming Soon</div>
+    <div class="nav-item" data-page="business" data-theme="neutral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="12" height="7" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+      Business Ops
+    </div>
+    <div class="nav-item" data-page="calendar" data-theme="neutral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+      Calendar
+    </div>
+    <div class="nav-item" data-page="reminders" data-theme="neutral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2a5 5 0 015 5v3l1.5 1.5H1.5L3 10V7a5 5 0 015-5z"/><path d="M6.5 13.5a1.5 1.5 0 003 0"/></svg>
+      Reminders
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Integrations</div>
+    <div class="nav-item" data-page="gcal" data-theme="neutral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M5 1v4M11 1v4M2 7h12"/><circle cx="8" cy="11" r="1.5" fill="currentColor" stroke="none"/></svg>
+      Google Calendar
+      <span class="nav-badge teal" id="nav-badge-gcal" style="display:none">●</span>
+    </div>
+  </div>
+
+    <div class="sidebar-footer">Offline · All data stored locally</div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- GCal status bar -->
+  <div class="gcal-bar" id="gcal-bar">
+    <span class="gcal-dot" id="gcal-dot"></span>
+    <span class="gcal-status" id="gcal-status-text">Google Calendar not connected</span>
+    <div class="gcal-actions">
+      <button class="btn sm" id="gcal-connect-btn" onclick="gcalConnect()">Connect Calendar</button>
+      <button class="btn sm" id="gcal-sync-btn" onclick="gcalSync()" style="display:none">Sync Now</button>
+      <button class="btn sm" id="gcal-disconnect-btn" onclick="gcalDisconnect()" style="display:none">Disconnect</button>
+    </div>
+  </div>
+
+
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div><div class="page-title">Daily Priorities</div><div class="page-subtitle" id="dash-date-sub"></div></div>
+    <div class="header-actions">
+      <button class="btn sm" onclick="openNoteModal()">+ Note</button>
+      <button class="btn sm danny" onclick="openTaskModal('Danny')">+ Danny Task</button>
+      <button class="btn sm grandma" onclick="openTaskModal('Grandma')">+ Grandma Task</button>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="stat-strip">
+      <div class="stat-chip sc-urgent"><div class="stat-n" id="stat-urgent">0</div><div class="stat-l">Urgent</div></div>
+      <div class="stat-chip sc-warn"><div class="stat-n" id="stat-overdue">0</div><div class="stat-l">Overdue</div></div>
+      <div class="stat-chip sc-danny"><div class="stat-n" id="stat-danny-tasks">0</div><div class="stat-l">Danny Today</div></div>
+      <div class="stat-chip sc-grandma"><div class="stat-n" id="stat-gma-tasks">0</div><div class="stat-l">Grandma Today</div></div>
+      <div class="stat-chip sc-ok"><div class="stat-n" id="stat-meds-low">0</div><div class="stat-l">Refills Due</div></div>
+    </div>
+
+    <!-- Danny's section -->
+    <div class="dash-person-header danny"><span class="dph-label">Danny</span><div class="dph-line"></div></div>
+    <div class="dash-grid" style="margin-bottom:1rem">
+      <div class="card danny-card"><div class="card-header"><div class="card-title"><span class="ctdot urgent"></span>Urgent &amp; Overdue</div></div><div id="dash-danny-urgent"><div class="empty">No urgent items</div></div></div>
+      <div class="card danny-card"><div class="card-header"><div class="card-title"><span class="ctdot danny"></span>Today's Tasks</div></div><div id="dash-danny-today"><div class="empty">Nothing due today</div></div></div>
+      <div class="card danny-card"><div class="card-header"><div class="card-title"><span class="ctdot warn"></span>Medication Reorder Alerts</div></div><div id="dash-danny-meds"><div class="empty">No reorders needed</div></div></div>
+      <div class="card danny-card"><div class="card-header"><div class="card-title"><span class="ctdot danny"></span>Today's Appointments</div></div><div id="dash-danny-appts"><div class="empty">No appointments today</div></div></div>
+    </div>
+
+    <!-- Grandma's section -->
+    <div class="dash-person-header grandma"><span class="dph-label">Grandma</span><div class="dph-line"></div></div>
+    <div class="dash-grid" style="margin-bottom:1rem">
+      <div class="card grandma-card"><div class="card-header"><div class="card-title"><span class="ctdot urgent"></span>Urgent &amp; Overdue</div></div><div id="dash-gma-urgent"><div class="empty">No urgent items</div></div></div>
+      <div class="card grandma-card"><div class="card-header"><div class="card-title"><span class="ctdot grandma"></span>Today's Tasks</div></div><div id="dash-gma-today"><div class="empty">Nothing due today</div></div></div>
+      <div class="card grandma-card"><div class="card-header"><div class="card-title"><span class="ctdot warn"></span>Medication Reorder Alerts</div></div><div id="dash-gma-meds"><div class="empty">No reorders needed</div></div></div>
+      <div class="card grandma-card"><div class="card-header"><div class="card-title"><span class="ctdot grandma"></span>Today's Appointments</div></div><div id="dash-gma-appts"><div class="empty">No appointments today</div></div></div>
+    </div>
+
+    <!-- Shared bottom row -->
+    <div class="dash-grid">
+      <div class="card"><div class="card-header"><div class="card-title"><span class="ctdot gold"></span>Important Notes</div><button class="btn sm" onclick="openNoteModal()">+</button></div><div id="dash-notes"><div class="empty">No notes yet</div></div></div>
+      <div class="card"><div class="card-header"><div class="card-title"><span class="ctdot info"></span>Looking Ahead — Tomorrow</div></div><div id="dash-tomorrow"><div class="empty">Nothing scheduled</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TASKS ── -->
+<div class="page" id="page-tasks">
+  <div class="page-header">
+    <div><div class="page-title">Tasks</div><div class="page-subtitle">All people · all sections</div></div>
+    <div class="header-actions"><button class="btn danny" onclick="openTaskModal('Danny')">+ Danny Task</button><button class="btn grandma" onclick="openTaskModal('Grandma')">+ Grandma Task</button><button class="btn" onclick="openTaskModal('You')">+ My Task</button></div>
+  </div>
+  <div class="section-tabs" id="task-section-tabs">
+    <div class="stab active-neutral" data-section="all">All</div>
+    <div class="stab" data-section="Health">Health</div>
+    <div class="stab" data-section="Business">Business</div>
+    <div class="stab" data-section="House">House</div>
+    <div class="stab" data-section="ATC">ATC</div>
+    <div class="stab" data-section="Misc">Misc</div>
+    <div class="stab" data-section="Personal">Personal</div>
+  </div>
+  <div class="tasks-controls">
+    <input type="text" id="task-search" placeholder="Search tasks…" oninput="renderTasks()">
+    <select id="task-filter-person" onchange="renderTasks()">
+      <option value="">All People</option>
+      <option value="Danny">Danny</option>
+      <option value="Grandma">Grandma</option>
+      <option value="Daughter 1">Daughter 1</option>
+      <option value="Daughter 2">Daughter 2</option>
+      <option value="You">You</option>
+    </select>
+    <select id="task-filter-status" onchange="renderTasks()">
+      <option value="">All Statuses</option>
+      <option value="To Do">To Do</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Done">Done</option>
+      <option value="Blocked">Blocked</option>
+    </select>
+    <select id="task-filter-priority" onchange="renderTasks()">
+      <option value="">All Priorities</option>
+      <option value="Urgent">Urgent</option>
+      <option value="High">High</option>
+      <option value="Normal">Normal</option>
+      <option value="Low">Low</option>
+    </select>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:1rem 1.2rem">
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th style="width:20px"></th><th>Task</th><th style="width:85px">Section</th>
+        <th style="width:85px">Person</th><th style="width:80px">Status</th>
+        <th style="width:75px">Priority</th><th style="width:100px">Due Date</th>
+        <th>Notes</th><th style="width:28px"></th>
+      </tr></thead>
+      <tbody id="tasks-tbody"></tbody>
+      <tfoot><tr><td></td><td colspan="8"><button class="btn sm" onclick="openTaskModal('You')" style="color:var(--text-muted)">+ Add task</button></td></tr></tfoot>
+    </table></div>
+  </div>
+</div>
+
+<!-- ── DANNY CONDITIONS ── -->
+<div class="page" id="page-danny-conditions">
+  <div class="page-header">
+    <div><div class="page-title">Conditions <span class="person-pill danny">Danny</span></div><div class="page-subtitle">Health conditions, descriptions &amp; related treatments</div></div>
+    <div class="header-actions"><button class="btn danny" onclick="openCondModal('danny')">+ Add Condition</button></div>
+  </div>
+  <div class="page-content" id="danny-conditions-list"></div>
+</div>
+
+<!-- ── DANNY MEDICATIONS ── -->
+<div class="page" id="page-danny-medications">
+  <div class="page-header">
+    <div><div class="page-title">Medications <span class="person-pill danny">Danny</span></div><div class="page-subtitle">Current medication protocol</div></div>
+    <div class="header-actions"><button class="btn danny" onclick="openMedModal('danny')">+ Add Medication</button></div>
+  </div>
+  <div class="page-content"><div class="meds-grid" id="danny-meds-grid"></div></div>
+</div>
+
+<!-- ── DANNY APPOINTMENTS ── -->
+<div class="page" id="page-danny-appointments">
+  <div class="page-header">
+    <div><div class="page-title">Appointments <span class="person-pill danny">Danny</span></div><div class="page-subtitle">Upcoming &amp; past appointments</div></div>
+    <div class="header-actions"><button class="btn danny" onclick="openApptModal('danny')">+ Add Appointment</button></div>
+  </div>
+  <div class="page-content" id="danny-appts-list"></div>
+</div>
+
+<!-- ── DANNY EXPERIMENTS ── -->
+<div class="page" id="page-danny-experiments">
+  <div class="page-header">
+    <div><div class="page-title">Things to Try <span class="person-pill danny">Danny</span></div><div class="page-subtitle">Experiments, ideas &amp; outcomes</div></div>
+    <div class="header-actions"><button class="btn danny" onclick="openExpModal('danny')">+ Add Experiment</button></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:1rem 1.2rem">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Idea / Experiment</th><th style="width:110px">Condition</th><th style="width:80px">Status</th><th style="width:90px">Started</th><th>Outcome Notes</th><th style="width:28px"></th></tr></thead>
+      <tbody id="danny-exp-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ── DANNY INVENTORY ── -->
+<div class="page" id="page-danny-inventory">
+  <div class="page-header">
+    <div><div class="page-title">Med Inventory <span class="person-pill danny">Danny</span></div><div class="page-subtitle">Quantities by location &amp; reorder thresholds</div></div>
+    <div class="header-actions"><button class="btn danny" onclick="openInvModal()">+ Add Entry</button></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:1rem 1.2rem">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Medication</th><th>Location</th><th style="width:80px">Qty on Hand</th><th style="width:80px">Reorder At</th><th style="width:90px">Last Updated</th><th style="width:75px">Status</th><th style="width:28px"></th></tr></thead>
+      <tbody id="inventory-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ── GRANDMA CONDITIONS ── -->
+<div class="page" id="page-gma-conditions">
+  <div class="page-header">
+    <div><div class="page-title">Conditions <span class="person-pill grandma">Grandma</span></div><div class="page-subtitle">Health conditions, descriptions &amp; related treatments</div></div>
+    <div class="header-actions"><button class="btn grandma" onclick="openCondModal('grandma')">+ Add Condition</button></div>
+  </div>
+  <div class="page-content" id="gma-conditions-list"></div>
+</div>
+
+<!-- ── GRANDMA MEDICATIONS ── -->
+<div class="page" id="page-gma-medications">
+  <div class="page-header">
+    <div><div class="page-title">Medications <span class="person-pill grandma">Grandma</span></div><div class="page-subtitle">Current medication protocol — no inventory tracking</div></div>
+    <div class="header-actions"><button class="btn grandma" onclick="openMedModal('grandma')">+ Add Medication</button></div>
+  </div>
+  <div class="page-content"><div class="meds-grid" id="gma-meds-grid"></div></div>
+</div>
+
+<!-- ── GRANDMA APPOINTMENTS ── -->
+<div class="page" id="page-gma-appointments">
+  <div class="page-header">
+    <div><div class="page-title">Appointments <span class="person-pill grandma">Grandma</span></div><div class="page-subtitle">Upcoming &amp; past appointments</div></div>
+    <div class="header-actions"><button class="btn grandma" onclick="openApptModal('grandma')">+ Add Appointment</button></div>
+  </div>
+  <div class="page-content" id="gma-appts-list"></div>
+</div>
+
+<!-- ── GRANDMA EXPERIMENTS ── -->
+<div class="page" id="page-gma-experiments">
+  <div class="page-header">
+    <div><div class="page-title">Things to Try <span class="person-pill grandma">Grandma</span></div><div class="page-subtitle">Ideas &amp; outcomes</div></div>
+    <div class="header-actions"><button class="btn grandma" onclick="openExpModal('grandma')">+ Add Experiment</button></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:1rem 1.2rem">
+    <div class="table-wrap"><table>
+      <thead><tr><th>Idea / Experiment</th><th style="width:110px">Condition</th><th style="width:80px">Status</th><th style="width:90px">Started</th><th>Outcome Notes</th><th style="width:28px"></th></tr></thead>
+      <tbody id="gma-exp-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ── GOOGLE CALENDAR PAGE ── -->
+<div class="page" id="page-gcal">
+  <div class="page-header">
+    <div><div class="page-title">Google Calendar</div><div class="page-subtitle">Appointments &amp; all-day events synced from your calendar</div></div>
+    <div class="header-actions">
+      <button class="btn sm" id="gcal-page-sync-btn" onclick="gcalSync()">Sync Now</button>
+      <button class="btn sm" id="gcal-page-connect-btn" onclick="gcalConnect()">Connect</button>
+    </div>
+  </div>
+  <div class="page-content" id="gcal-page-content">
+    <div class="coming-soon">
+      <div class="cs-icon">📅</div>
+      <h3>Connect Google Calendar</h3>
+      <p>Click "Connect Calendar" in the bar above to sign in with Google and start syncing today's appointments and all-day events.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMING SOON ── -->
+<div class="page" id="page-business">
+  <div class="page-header"><div><div class="page-title">Business Operations</div><div class="page-subtitle">Coming in Phase 3</div></div></div>
+  <div class="coming-soon"><div class="cs-icon">💼</div><h3>Business Ops Workspace</h3><p>Track clients, goals, projects, and operations in a dedicated workspace.</p><span class="cs-badge">Phase 3</span></div>
+</div>
+<div class="page" id="page-calendar">
+  <div class="page-header"><div><div class="page-title">Calendar</div><div class="page-subtitle">Coming in Phase 3</div></div></div>
+  <div class="coming-soon"><div class="cs-icon">📅</div><h3>Unified Calendar</h3><p>All appointments and task due dates for Danny, Grandma, and yourself in one calendar view.</p><span class="cs-badge">Phase 3</span></div>
+</div>
+<div class="page" id="page-reminders">
+  <div class="page-header"><div><div class="page-title">Reminders</div><div class="page-subtitle">Coming in Phase 3</div></div></div>
+  <div class="coming-soon"><div class="cs-icon">🔔</div><h3>Reminders Engine</h3><p>Browser push notifications for medication reorders, appointments, and overdue tasks.</p><span class="cs-badge">Phase 3</span></div>
+</div>
+
+</main>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<!-- Task -->
+<div class="overlay" id="overlay-task">
+<div class="modal">
+  <h3 id="task-modal-title">Add Task</h3>
+  <div class="form-row"><label class="form-label">Task Title</label><input class="form-input" id="tm-title" placeholder="What needs to be done?"></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Section</label>
+      <select class="form-input" id="tm-section"><option>Health</option><option>Business</option><option>House</option><option>ATC</option><option>Misc</option><option>Personal</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">Person</label>
+      <select class="form-input" id="tm-person"><option>Danny</option><option>Grandma</option><option>Daughter 1</option><option>Daughter 2</option><option>You</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">Status</label>
+      <select class="form-input" id="tm-status"><option>To Do</option><option>In Progress</option><option>Done</option><option>Blocked</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">Priority</label>
+      <select class="form-input" id="tm-priority"><option>Urgent</option><option>High</option><option selected>Normal</option><option>Low</option></select>
+    </div>
+  </div>
+  <div class="form-row"><label class="form-label">Due Date</label><input class="form-input" id="tm-due" type="date"></div>
+  <div class="form-row"><label class="form-label">Notes</label><textarea class="form-input textarea" id="tm-notes" placeholder="Additional notes…"></textarea></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-task')">Cancel</button><button class="btn danny" id="task-save-btn" onclick="saveTask()">Save Task</button></div>
+</div>
+</div>
+
+<!-- Note -->
+<div class="overlay" id="overlay-note">
+<div class="modal">
+  <h3>Add Important Note</h3>
+  <div class="form-row"><label class="form-label">Tag / Category</label><input class="form-input" id="nm-tag" placeholder="e.g. Health, Reminder, Business…"></div>
+  <div class="form-row"><label class="form-label">Note</label><textarea class="form-input textarea" id="nm-text" placeholder="What's the note?" style="min-height:90px"></textarea></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-note')">Cancel</button><button class="btn danny" onclick="saveNote()">Save Note</button></div>
+</div>
+</div>
+
+<!-- Condition -->
+<div class="overlay" id="overlay-cond">
+<div class="modal">
+  <h3 id="cond-modal-title">Add Condition</h3>
+  <div class="form-row"><label class="form-label">Condition Name</label><input class="form-input" id="cm-name" placeholder="e.g. Type 2 Diabetes"></div>
+  <div class="form-row"><label class="form-label">Description / Notes</label><textarea class="form-input textarea" id="cm-desc" placeholder="Brief description, symptoms, current status…"></textarea></div>
+  <div class="form-row"><label class="form-label">Related Medications</label><input class="form-input" id="cm-meds" placeholder="Comma-separated med names"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-cond')">Cancel</button><button class="btn" id="cond-save-btn" onclick="saveCond()">Save</button></div>
+</div>
+</div>
+
+<!-- Medication -->
+<div class="overlay" id="overlay-med">
+<div class="modal">
+  <h3 id="med-modal-title">Add Medication</h3>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="mm-name" placeholder="Medication name"></div>
+    <div class="form-row"><label class="form-label">Dose</label><input class="form-input" id="mm-dose" placeholder="e.g. 500mg twice daily"></div>
+    <div class="form-row"><label class="form-label">Reason</label><input class="form-input" id="mm-reason" placeholder="Why is it prescribed?"></div>
+    <div class="form-row"><label class="form-label">Prescriber</label><input class="form-input" id="mm-prescriber" placeholder="Dr. Name"></div>
+    <div class="form-row"><label class="form-label">Refill Date</label><input class="form-input" id="mm-refill" type="date"></div>
+    <div class="form-row"><label class="form-label">Reorder Threshold (days)</label><input class="form-input" id="mm-threshold" type="number" value="7"></div>
+  </div>
+  <div class="form-row"><label class="form-label">Schedule</label><input class="form-input" id="mm-schedule" placeholder="e.g. Morning with food, evening before bed"></div>
+  <div class="form-row"><label class="form-label">Notes</label><textarea class="form-input textarea" id="mm-notes" style="min-height:55px"></textarea></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-med')">Cancel</button><button class="btn" id="med-save-btn" onclick="saveMed()">Save Medication</button></div>
+</div>
+</div>
+
+<!-- Appointment -->
+<div class="overlay" id="overlay-appt">
+<div class="modal">
+  <h3 id="appt-modal-title">Add Appointment</h3>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Provider / Title</label><input class="form-input" id="am-provider" placeholder="Dr. Smith / Cardiology"></div>
+    <div class="form-row"><label class="form-label">Date</label><input class="form-input" id="am-date" type="date"></div>
+    <div class="form-row"><label class="form-label">Time</label><input class="form-input" id="am-time" type="time"></div>
+    <div class="form-row"><label class="form-label">Location</label><input class="form-input" id="am-location" placeholder="Address or 'Telehealth'"></div>
+  </div>
+  <div class="form-row"><label class="form-label">Prep Notes</label><textarea class="form-input textarea" id="am-prep" style="min-height:55px"></textarea></div>
+  <div class="form-row"><label class="form-label">Outcome Notes (fill after)</label><textarea class="form-input textarea" id="am-outcome" style="min-height:55px"></textarea></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-appt')">Cancel</button><button class="btn" id="appt-save-btn" onclick="saveAppt()">Save Appointment</button></div>
+</div>
+</div>
+
+<!-- Experiment -->
+<div class="overlay" id="overlay-exp">
+<div class="modal">
+  <h3 id="exp-modal-title">Add Experiment / Thing to Try</h3>
+  <div class="form-row"><label class="form-label">Idea / Experiment</label><input class="form-input" id="em-idea" placeholder="What's the idea?"></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Condition</label><input class="form-input" id="em-condition" placeholder="Related condition"></div>
+    <div class="form-row"><label class="form-label">Status</label><select class="form-input" id="em-status"><option>Planned</option><option>Active</option><option>Done</option><option>Paused</option></select></div>
+    <div class="form-row"><label class="form-label">Start Date</label><input class="form-input" id="em-started" type="date"></div>
+  </div>
+  <div class="form-row"><label class="form-label">Outcome / Notes</label><textarea class="form-input textarea" id="em-outcome"></textarea></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-exp')">Cancel</button><button class="btn" id="exp-save-btn" onclick="saveExp()">Save</button></div>
+</div>
+</div>
+
+<!-- Inventory -->
+<div class="overlay" id="overlay-inv">
+<div class="modal">
+  <h3>Add Inventory Entry <span class="person-pill danny">Danny</span></h3>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Medication</label><input class="form-input" id="im-med" placeholder="Medication name"></div>
+    <div class="form-row"><label class="form-label">Location</label><input class="form-input" id="im-location" placeholder="e.g. Home, Car, Daughter's"></div>
+    <div class="form-row"><label class="form-label">Qty on Hand</label><input class="form-input" id="im-qty" type="number" placeholder="0"></div>
+    <div class="form-row"><label class="form-label">Reorder When Below</label><input class="form-input" id="im-threshold" type="number" placeholder="14"></div>
+  </div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('overlay-inv')">Cancel</button><button class="btn danny" onclick="saveInv()">Save</button></div>
+</div>
+</div>
+
+<script>
+// ═══ STATE ═══
+const LS = { get:(k)=>{ try{return JSON.parse(localStorage.getItem('cc2_'+k))||[]}catch(e){return []} }, set:(k,v)=>localStorage.setItem('cc2_'+k,JSON.stringify(v)) };
+let tasks=LS.get('tasks'), notes=LS.get('notes');
+let dannyConditions=LS.get('danny_conds'), dannyMeds=LS.get('danny_meds'), dannyAppts=LS.get('danny_appts'), dannyExp=LS.get('danny_exp'), inventory=LS.get('inventory');
+let gmaConditions=LS.get('gma_conds'), gmaMeds=LS.get('gma_meds'), gmaAppts=LS.get('gma_appts'), gmaExp=LS.get('gma_exp');
+
+const save=()=>{
+  LS.set('tasks',tasks); LS.set('notes',notes);
+  LS.set('danny_conds',dannyConditions); LS.set('danny_meds',dannyMeds); LS.set('danny_appts',dannyAppts); LS.set('danny_exp',dannyExp); LS.set('inventory',inventory);
+  LS.set('gma_conds',gmaConditions); LS.set('gma_meds',gmaMeds); LS.set('gma_appts',gmaAppts); LS.set('gma_exp',gmaExp);
+};
+
+const uid=()=>Math.random().toString(36).slice(2,9);
+const today=()=>new Date().toISOString().slice(0,10);
+const tomorrow=()=>{let d=new Date();d.setDate(d.getDate()+1);return d.toISOString().slice(0,10)};
+const fmtDate=s=>{if(!s)return'—';const[y,m,d]=s.split('-');const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${mn[+m-1]} ${+d}`};
+const fmtTime=s=>{if(!s)return'';const[h,m]=s.split(':');return`${+h%12||12}:${m} ${+h>=12?'PM':'AM'}`};
+const esc=s=>{if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+const gv=id=>document.getElementById(id)?.value?.trim()||'';
+
+// ═══ NAVIGATION ═══
+let activeSection='all';
+let currentModalPerson='danny';
+
+document.querySelectorAll('.nav-item[data-page]').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active-danny','active-grandma','active-neutral'));
+    const theme=el.dataset.theme||'neutral';
+    el.classList.add(`active-${theme}`);
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+el.dataset.page).classList.add('active');
+    renderAll();
+  });
+});
+
+document.querySelectorAll('#task-section-tabs .stab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('#task-section-tabs .stab').forEach(t=>t.classList.remove('active-danny','active-grandma','active-neutral'));
+    tab.classList.add('active-neutral');
+    activeSection=tab.dataset.section;
+    renderTasks();
+  });
+});
+
+// ═══ DATE ═══
+function setDates(){
+  const now=new Date();
+  document.getElementById('sidebar-date').textContent=now.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('dash-date-sub').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+setDates();
+
+// ═══ MODALS ═══
+const openModal=id=>document.getElementById(id).classList.add('open');
+const closeModal=id=>document.getElementById(id).classList.remove('open');
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+function openTaskModal(person='Danny'){
+  currentModalPerson=person.toLowerCase()==='grandma'?'grandma':'danny';
+  document.getElementById('task-modal-title').textContent=`Add Task — ${person}`;
+  document.getElementById('tm-person').value=person;
+  document.getElementById('tm-title').value='';document.getElementById('tm-due').value='';document.getElementById('tm-notes').value='';
+  document.getElementById('tm-section').value='Health';document.getElementById('tm-status').value='To Do';document.getElementById('tm-priority').value='Normal';
+  const btn=document.getElementById('task-save-btn');
+  btn.className=`btn ${currentModalPerson}`;
+  openModal('overlay-task');
+}
+function openNoteModal(){gv('nm-tag');document.getElementById('nm-tag').value='';document.getElementById('nm-text').value='';openModal('overlay-note')}
+function openCondModal(person){
+  currentModalPerson=person;
+  document.getElementById('cond-modal-title').textContent=`Add Condition — ${person==='danny'?'Danny':'Grandma'}`;
+  document.getElementById('cm-name').value='';document.getElementById('cm-desc').value='';document.getElementById('cm-meds').value='';
+  const btn=document.getElementById('cond-save-btn');btn.className=`btn ${person}`;
+  openModal('overlay-cond');
+}
+function openMedModal(person){
+  currentModalPerson=person;
+  document.getElementById('med-modal-title').textContent=`Add Medication — ${person==='danny'?'Danny':'Grandma'}`;
+  ['mm-name','mm-dose','mm-reason','mm-prescriber','mm-refill','mm-schedule','mm-notes'].forEach(id=>{document.getElementById(id).value=''});
+  document.getElementById('mm-threshold').value=7;
+  const btn=document.getElementById('med-save-btn');btn.className=`btn ${person}`;
+  openModal('overlay-med');
+}
+function openApptModal(person){
+  currentModalPerson=person;
+  document.getElementById('appt-modal-title').textContent=`Add Appointment — ${person==='danny'?'Danny':'Grandma'}`;
+  ['am-provider','am-date','am-time','am-location','am-prep','am-outcome'].forEach(id=>{document.getElementById(id).value=''});
+  const btn=document.getElementById('appt-save-btn');btn.className=`btn ${person}`;
+  openModal('overlay-appt');
+}
+function openExpModal(person){
+  currentModalPerson=person;
+  document.getElementById('exp-modal-title').textContent=`Add Experiment — ${person==='danny'?'Danny':'Grandma'}`;
+  ['em-idea','em-condition','em-started','em-outcome'].forEach(id=>{document.getElementById(id).value=''});
+  document.getElementById('em-status').value='Planned';
+  const btn=document.getElementById('exp-save-btn');btn.className=`btn ${person}`;
+  openModal('overlay-exp');
+}
+function openInvModal(){['im-med','im-location','im-qty','im-threshold'].forEach(id=>{document.getElementById(id).value=''});openModal('overlay-inv')}
+
+// ═══ SAVE ═══
+function saveTask(){
+  const title=gv('tm-title');if(!title)return;
+  tasks.push({id:uid(),title,section:gv('tm-section'),person:gv('tm-person'),status:gv('tm-status'),priority:gv('tm-priority'),due:gv('tm-due'),notes:gv('tm-notes'),created:today()});
+  save();closeModal('overlay-task');renderAll();
+}
+function saveNote(){
+  const text=gv('nm-text');if(!text)return;
+  notes.push({id:uid(),tag:gv('nm-tag')||'Note',text,created:today()});
+  save();closeModal('overlay-note');renderAll();
+}
+function saveCond(){
+  const name=gv('cm-name');if(!name)return;
+  const obj={id:uid(),name,desc:gv('cm-desc'),meds:gv('cm-meds'),created:today()};
+  if(currentModalPerson==='danny') dannyConditions.push(obj); else gmaConditions.push(obj);
+  save();closeModal('overlay-cond');renderAll();
+}
+function saveMed(){
+  const name=gv('mm-name');if(!name)return;
+  const obj={id:uid(),name,dose:gv('mm-dose'),reason:gv('mm-reason'),prescriber:gv('mm-prescriber'),refill:gv('mm-refill'),threshold:parseInt(gv('mm-threshold'))||7,schedule:gv('mm-schedule'),notes:gv('mm-notes'),created:today()};
+  if(currentModalPerson==='danny') dannyMeds.push(obj); else gmaMeds.push(obj);
+  save();closeModal('overlay-med');renderAll();
+}
+function saveAppt(){
+  const provider=gv('am-provider');if(!provider)return;
+  const obj={id:uid(),provider,date:gv('am-date'),time:gv('am-time'),location:gv('am-location'),prep:gv('am-prep'),outcome:gv('am-outcome'),created:today()};
+  if(currentModalPerson==='danny') dannyAppts.push(obj); else gmaAppts.push(obj);
+  save();closeModal('overlay-appt');renderAll();
+}
+function saveExp(){
+  const idea=gv('em-idea');if(!idea)return;
+  const obj={id:uid(),idea,condition:gv('em-condition'),status:gv('em-status'),started:gv('em-started'),outcome:gv('em-outcome'),created:today()};
+  if(currentModalPerson==='danny') dannyExp.push(obj); else gmaExp.push(obj);
+  save();closeModal('overlay-exp');renderAll();
+}
+function saveInv(){
+  const med=gv('im-med');if(!med)return;
+  inventory.push({id:uid(),med,location:gv('im-location'),qty:parseInt(gv('im-qty'))||0,threshold:parseInt(gv('im-threshold'))||14,updated:today()});
+  save();closeModal('overlay-inv');renderAll();
+}
+
+// ═══ DELETE ═══
+function delTask(id){tasks=tasks.filter(t=>t.id!==id);save();renderAll()}
+function delNote(id){notes=notes.filter(n=>n.id!==id);save();renderAll()}
+function delDannyCond(id){dannyConditions=dannyConditions.filter(c=>c.id!==id);save();renderConditions('danny')}
+function delGmaCond(id){gmaConditions=gmaConditions.filter(c=>c.id!==id);save();renderConditions('grandma')}
+function delDannyMed(id){dannyMeds=dannyMeds.filter(m=>m.id!==id);save();renderMeds('danny')}
+function delGmaMed(id){gmaMeds=gmaMeds.filter(m=>m.id!==id);save();renderMeds('grandma')}
+function delDannyAppt(id){dannyAppts=dannyAppts.filter(a=>a.id!==id);save();renderAppts('danny')}
+function delGmaAppt(id){gmaAppts=gmaAppts.filter(a=>a.id!==id);save();renderAppts('grandma')}
+function delDannyExp(id){dannyExp=dannyExp.filter(e=>e.id!==id);save();renderExp('danny')}
+function delGmaExp(id){gmaExp=gmaExp.filter(e=>e.id!==id);save();renderExp('grandma')}
+function delInv(id){inventory=inventory.filter(i=>i.id!==id);save();renderInventory()}
+
+// ═══ INLINE EDIT ═══
+function editTask(id,field,val){const t=tasks.find(t=>t.id===id);if(t){t[field]=val;save();updateDashboard();updateNavBadges()}}
+function editDannyExp(id,f,v){const e=dannyExp.find(e=>e.id===id);if(e){e[f]=v;save()}}
+function editGmaExp(id,f,v){const e=gmaExp.find(e=>e.id===id);if(e){e[f]=v;save()}}
+function editInv(id,f,v){const i=inventory.find(i=>i.id===id);if(i){i[f]=v;save();renderInventory()}}
+
+// ═══ BADGE HELPERS ═══
+function personBadge(p){
+  const m={'Danny':'danny','Grandma':'grandma','Daughter 1':'d1','Daughter 2':'d2','You':'you'};
+  return`<span class="pb pb-${m[p]||'you'}">${esc(p)}</span>`;
+}
+function statusBadge(s){const m={'To Do':'b-muted','In Progress':'b-info','Done':'b-ok','Blocked':'b-urgent'};return`<span class="badge ${m[s]||'b-muted'}">${s}</span>`}
+function priorityBadge(p){const m={'Urgent':'b-urgent','High':'b-warn','Normal':'b-muted','Low':'b-ok'};return`<span class="badge ${m[p]||'b-muted'}">${p}</span>`}
+function sectionBadge(s){const m={'Health':'b-urgent','Business':'b-info','House':'b-gold','ATC':'b-danny','Misc':'b-muted','Personal':'b-grandma'};return`<span class="badge ${m[s]||'b-muted'}">${s}</span>`}
+function expStatusBadge(s){const m={'Planned':'b-info','Active':'b-warn','Done':'b-ok','Paused':'b-muted'};return`<span class="badge ${m[s]||'b-muted'}">${s}</span>`}
+function sectionStrip(s){const m={'Health':'health','Business':'biz','House':'house','ATC':'atc','Misc':'misc','Personal':'personal'};return`<span class="sec-strip ss-${m[s]||'misc'}"></span>`}
+
+// ═══ DASHBOARD ═══
+function updateDashboard(){
+  const t=today(),tm=tomorrow(),now=new Date();
+
+  // helpers
+  const piItem=(task,color)=>`<div class="priority-item"><span class="pi-dot" style="background:${color}"></span><div class="pi-body"><div class="pi-title">${esc(task.title)}</div><div class="pi-meta">${esc(task.section)} · ${fmtDate(task.due)||'No due date'}</div></div><div class="pi-right">${sectionBadge(task.section)}</div></div>`;
+
+  // Danny tasks
+  const dannyTasks=tasks.filter(x=>x.person==='Danny'&&x.status!=='Done');
+  const dannyUrgent=dannyTasks.filter(x=>x.priority==='Urgent'||(x.due&&x.due<t));
+  const dannyToday=dannyTasks.filter(x=>x.due===t);
+  document.getElementById('stat-danny-tasks').textContent=dannyToday.length;
+  document.getElementById('dash-danny-urgent').innerHTML=dannyUrgent.length?dannyUrgent.map(x=>piItem(x,'var(--urgent)')).join(''):'<div class="empty">No urgent items ✓</div>';
+  document.getElementById('dash-danny-today').innerHTML=dannyToday.length?dannyToday.map(x=>piItem(x,'var(--danny)')).join(''):'<div class="empty">Nothing due today</div>';
+
+  // Danny meds
+  const dannyLowMeds=dannyMeds.filter(m=>{if(!m.refill)return false;const days=Math.ceil((new Date(m.refill)-now)/(1000*60*60*24));return days<=(m.threshold||7)});
+  document.getElementById('dash-danny-meds').innerHTML=dannyLowMeds.length
+    ?dannyLowMeds.map(m=>{const days=Math.ceil((new Date(m.refill)-now)/(1000*60*60*24));return`<div class="med-alert"><span>⚠️</span><div><div class="med-alert-name">${esc(m.name)}<span class="med-alert-detail">${esc(m.dose)}</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:1px">Refill ${days<=0?'OVERDUE':days+' day'+(days===1?'':'s')+' away'}</div></div></div>`}).join('')
+    :'<div class="empty">No reorders needed</div>';
+
+  // Danny appts
+  const dannyApptToday=dannyAppts.filter(a=>a.date===t).sort((a,b)=>a.time>b.time?1:-1);
+  document.getElementById('dash-danny-appts').innerHTML=dannyApptToday.length
+    ?dannyApptToday.map(a=>`<div class="appt-row"><span class="appt-time danny">${fmtTime(a.time)||'TBD'}</span><div><div class="appt-provider">${esc(a.provider)}</div><div class="appt-loc">${esc(a.location)||'Location TBD'}</div></div></div>`).join('')
+    :'<div class="empty">No appointments today</div>';
+
+  // Grandma tasks
+  const gmaTasks=tasks.filter(x=>x.person==='Grandma'&&x.status!=='Done');
+  const gmaUrgent=gmaTasks.filter(x=>x.priority==='Urgent'||(x.due&&x.due<t));
+  const gmaToday=gmaTasks.filter(x=>x.due===t);
+  document.getElementById('stat-gma-tasks').textContent=gmaToday.length;
+  document.getElementById('dash-gma-urgent').innerHTML=gmaUrgent.length?gmaUrgent.map(x=>piItem(x,'var(--urgent)')).join(''):'<div class="empty">No urgent items ✓</div>';
+  document.getElementById('dash-gma-today').innerHTML=gmaToday.length?gmaToday.map(x=>piItem(x,'var(--grandma)')).join(''):'<div class="empty">Nothing due today</div>';
+
+  // Grandma meds
+  const gmaLowMeds=gmaMeds.filter(m=>{if(!m.refill)return false;const days=Math.ceil((new Date(m.refill)-now)/(1000*60*60*24));return days<=(m.threshold||7)});
+  document.getElementById('dash-gma-meds').innerHTML=gmaLowMeds.length
+    ?gmaLowMeds.map(m=>{const days=Math.ceil((new Date(m.refill)-now)/(1000*60*60*24));return`<div class="med-alert"><span>⚠️</span><div><div class="med-alert-name">${esc(m.name)}<span class="med-alert-detail">${esc(m.dose)}</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:1px">Refill ${days<=0?'OVERDUE':days+' day'+(days===1?'':'s')+' away'}</div></div></div>`}).join('')
+    :'<div class="empty">No reorders needed</div>';
+
+  // Grandma appts
+  const gmaApptToday=gmaAppts.filter(a=>a.date===t).sort((a,b)=>a.time>b.time?1:-1);
+  document.getElementById('dash-gma-appts').innerHTML=gmaApptToday.length
+    ?gmaApptToday.map(a=>`<div class="appt-row"><span class="appt-time grandma">${fmtTime(a.time)||'TBD'}</span><div><div class="appt-provider">${esc(a.provider)}</div><div class="appt-loc">${esc(a.location)||'Location TBD'}</div></div></div>`).join('')
+    :'<div class="empty">No appointments today</div>';
+
+  // Shared stats
+  const allUrgent=tasks.filter(x=>x.priority==='Urgent'&&x.status!=='Done').length;
+  const allOverdue=tasks.filter(x=>x.due&&x.due<t&&x.status!=='Done').length;
+  document.getElementById('stat-urgent').textContent=allUrgent;
+  document.getElementById('stat-overdue').textContent=allOverdue;
+  document.getElementById('stat-meds-low').textContent=dannyLowMeds.length+gmaLowMeds.length;
+
+  // Notes
+  document.getElementById('dash-notes').innerHTML=notes.length
+    ?notes.slice(-5).reverse().map(n=>`<div class="note-item"><div class="note-tag" style="color:var(--accent-gold)">${esc(n.tag)}</div><div class="note-text">${esc(n.text)}</div></div>`).join('')
+    :'<div class="empty">No notes yet</div>';
+
+  // Tomorrow
+  const tmTasks=tasks.filter(x=>x.due===tm&&x.status!=='Done');
+  const tmDAppts=dannyAppts.filter(a=>a.date===tm).sort((a,b)=>a.time>b.time?1:-1);
+  const tmGAppts=gmaAppts.filter(a=>a.date===tm).sort((a,b)=>a.time>b.time?1:-1);
+  let tmHtml='';
+  tmDAppts.forEach(a=>{tmHtml+=`<div class="ahead-item"><span class="ahead-icon">📅</span><span class="pb pb-danny">Danny</span><span style="font-weight:600;color:var(--text-primary)">${fmtTime(a.time)||'TBD'}</span><span style="color:var(--text-secondary)">${esc(a.provider)}</span></div>`});
+  tmGAppts.forEach(a=>{tmHtml+=`<div class="ahead-item"><span class="ahead-icon">📅</span><span class="pb pb-grandma">Grandma</span><span style="font-weight:600;color:var(--text-primary)">${fmtTime(a.time)||'TBD'}</span><span style="color:var(--text-secondary)">${esc(a.provider)}</span></div>`});
+  tmTasks.forEach(x=>{tmHtml+=`<div class="ahead-item"><span class="ahead-icon">✓</span>${personBadge(x.person)}<span>${esc(x.title)}</span></div>`});
+  document.getElementById('dash-tomorrow').innerHTML=tmHtml||'<div class="empty">Nothing scheduled for tomorrow</div>';
+}
+
+// ═══ RENDER TASKS ═══
+function renderTasks(){
+  const search=(document.getElementById('task-search')?.value||'').toLowerCase();
+  const personF=document.getElementById('task-filter-person')?.value||'';
+  const statusF=document.getElementById('task-filter-status')?.value||'';
+  const priorityF=document.getElementById('task-filter-priority')?.value||'';
+  let filtered=tasks.filter(t=>{
+    if(activeSection!=='all'&&t.section!==activeSection)return false;
+    if(personF&&t.person!==personF)return false;
+    if(statusF&&t.status!==statusF)return false;
+    if(priorityF&&t.priority!==priorityF)return false;
+    if(search&&!t.title.toLowerCase().includes(search)&&!(t.notes||'').toLowerCase().includes(search))return false;
+    return true;
+  });
+  const tbody=document.getElementById('tasks-tbody');if(!tbody)return;
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty">No tasks match filters</div></td></tr>';return}
+  tbody.innerHTML=filtered.map(t=>`
+    <tr>
+      <td>${sectionStrip(t.section)}</td>
+      <td><input type="text" value="${esc(t.title)}" onchange="editTask('${t.id}','title',this.value)" style="min-width:130px"></td>
+      <td><select onchange="editTask('${t.id}','section',this.value)">${['Health','Business','House','ATC','Misc','Personal'].map(s=>`<option${t.section===s?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select onchange="editTask('${t.id}','person',this.value)">${['Danny','Grandma','Daughter 1','Daughter 2','You'].map(p=>`<option${t.person===p?' selected':''}>${p}</option>`).join('')}</select></td>
+      <td><select onchange="editTask('${t.id}','status',this.value)">${['To Do','In Progress','Done','Blocked'].map(s=>`<option${t.status===s?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select onchange="editTask('${t.id}','priority',this.value)">${['Urgent','High','Normal','Low'].map(p=>`<option${t.priority===p?' selected':''}>${p}</option>`).join('')}</select></td>
+      <td><input type="date" value="${t.due||''}" onchange="editTask('${t.id}','due',this.value)" style="width:100%;background:transparent;border:none;color:var(--text-primary);font-family:var(--font);font-size:11px"></td>
+      <td><input type="text" value="${esc(t.notes||'')}" onchange="editTask('${t.id}','notes',this.value)" placeholder="Notes..." style="min-width:90px;font-size:11px;color:var(--text-secondary)"></td>
+      <td><button class="row-delete" onclick="delTask('${t.id}')">x</button></td>
+    </tr>`).join('');
+}
+
+// ═══ RENDER CONDITIONS ═══
+function renderConditions(who){
+  const list=who==='danny'?dannyConditions:gmaConditions;
+  const elId=who==='danny'?'danny-conditions-list':'gma-conditions-list';
+  const el=document.getElementById(elId);if(!el)return;
+  if(!list.length){el.innerHTML='<div class="empty" style="padding:2rem">No conditions added yet.</div>';return}
+  el.innerHTML=list.map(c=>`
+    <div class="cond-card ${who}-theme">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="cond-name">${esc(c.name)}</div>
+        <button class="row-delete" onclick="del${who==='danny'?'Danny':'Gma'}Cond('${c.id}')">x</button>
+      </div>
+      ${c.desc?`<div class="cond-desc">${esc(c.desc)}</div>`:''}
+      ${c.meds?`<div class="cond-meds">${c.meds.split(',').map(m=>`<span class="badge b-${who}">${esc(m.trim())}</span>`).join('')}</div>`:''}
+      <div style="font-size:10px;color:var(--text-muted);margin-top:6px">Added ${fmtDate(c.created)}</div>
+    </div>`).join('');
+}
+
+// ═══ RENDER MEDS ═══
+function renderMeds(who){
+  const list=who==='danny'?dannyMeds:gmaMeds;
+  const elId=who==='danny'?'danny-meds-grid':'gma-meds-grid';
+  const el=document.getElementById(elId);if(!el)return;
+  const now=new Date();
+  if(!list.length){el.innerHTML='<div class="empty" style="padding:2rem">No medications added yet.</div>';return}
+  el.innerHTML=list.map(m=>{
+    const refillSoon=m.refill&&Math.ceil((new Date(m.refill)-now)/(1000*60*60*24))<=(m.threshold||7);
+    return`<div class="med-card ${who}-theme${refillSoon?' refill-soon':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="med-name">${esc(m.name)}</div><div class="med-dose ${who}">${esc(m.dose)}</div></div>
+        ${refillSoon?'<span class="refill-label">Refill</span>':''}
+      </div>
+      <div class="med-divider"></div>
+      <div class="med-row"><span>Reason</span><span>${esc(m.reason)||'—'}</span></div>
+      <div class="med-row"><span>Schedule</span><span>${esc(m.schedule)||'—'}</span></div>
+      <div class="med-row"><span>Prescriber</span><span>${esc(m.prescriber)||'—'}</span></div>
+      <div class="med-row"><span>Refill</span><span>${fmtDate(m.refill)||'—'}</span></div>
+      ${m.notes?`<div style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5">${esc(m.notes)}</div>`:''}
+      <div class="med-actions"><button class="btn sm" onclick="del${who==='danny'?'Danny':'Gma'}Med('${m.id}')" style="color:var(--urgent);border-color:rgba(224,112,112,0.25)">Remove</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ RENDER APPTS ═══
+function renderAppts(who){
+  const list=who==='danny'?dannyAppts:gmaAppts;
+  const elId=who==='danny'?'danny-appts-list':'gma-appts-list';
+  const el=document.getElementById(elId);if(!el)return;
+  const t=today();
+  if(!list.length){el.innerHTML='<div class="empty" style="padding:2rem">No appointments yet.</div>';return}
+  const sorted=[...list].sort((a,b)=>a.date>b.date?1:-1);
+  el.innerHTML=sorted.map(a=>`
+    <div class="appt-full">
+      <div class="appt-date-box">
+        <div class="appt-day ${who}">${a.date?new Date(a.date+'T12:00:00').getDate():'?'}</div>
+        <div class="appt-mon">${a.date?new Date(a.date+'T12:00:00').toLocaleString('en-US',{month:'short'}):''}</div>
+      </div>
+      <div class="appt-full-info">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="appt-full-title">${esc(a.provider)}</div>
+          ${a.date===t?`<span class="badge b-${who}">Today</span>`:''}
+        </div>
+        <div class="appt-full-meta">${fmtTime(a.time)||'Time TBD'} · ${esc(a.location)||'Location TBD'}</div>
+        ${a.prep?`<div class="appt-prep">Prep: ${esc(a.prep)}</div>`:''}
+        ${a.outcome?`<div class="appt-prep" style="border-left:2px solid var(--${who});padding-left:8px">Outcome: ${esc(a.outcome)}</div>`:''}
+      </div>
+      <button class="row-delete" onclick="del${who==='danny'?'Danny':'Gma'}Appt('${a.id}')">x</button>
+    </div>`).join('');
+}
+
+// ═══ RENDER EXP ═══
+function renderExp(who){
+  const list=who==='danny'?dannyExp:gmaExp;
+  const tbodyId=who==='danny'?'danny-exp-tbody':'gma-exp-tbody';
+  const tbody=document.getElementById(tbodyId);if(!tbody)return;
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty">No experiments yet.</div></td></tr>';return}
+  tbody.innerHTML=list.map(e=>`
+    <tr>
+      <td><input type="text" value="${esc(e.idea)}" onchange="edit${who==='danny'?'Danny':'Gma'}Exp('${e.id}','idea',this.value)" style="min-width:150px"></td>
+      <td><input type="text" value="${esc(e.condition||'')}" onchange="edit${who==='danny'?'Danny':'Gma'}Exp('${e.id}','condition',this.value)" placeholder="Condition..."></td>
+      <td><select onchange="edit${who==='danny'?'Danny':'Gma'}Exp('${e.id}','status',this.value)">${['Planned','Active','Done','Paused'].map(s=>`<option${e.status===s?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td style="font-size:11px;color:var(--text-muted)">${fmtDate(e.started)||'—'}</td>
+      <td><input type="text" value="${esc(e.outcome||'')}" onchange="edit${who==='danny'?'Danny':'Gma'}Exp('${e.id}','outcome',this.value)" placeholder="Outcome / notes..." style="min-width:130px;font-size:11px;color:var(--text-secondary)"></td>
+      <td><button class="row-delete" onclick="del${who==='danny'?'Danny':'Gma'}Exp('${e.id}')">x</button></td>
+    </tr>`).join('');
+}
+
+// ═══ RENDER INVENTORY ═══
+function renderInventory(){
+  const tbody=document.getElementById('inventory-tbody');if(!tbody)return;
+  if(!inventory.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty">No inventory entries yet.</div></td></tr>';return}
+  tbody.innerHTML=inventory.map(i=>{
+    const low=i.qty<=i.threshold;
+    return`<tr>
+      <td style="font-weight:600">${esc(i.med)}</td>
+      <td><span class="inv-location">${esc(i.location)}</span></td>
+      <td><input type="number" value="${i.qty}" onchange="editInv('${i.id}','qty',parseInt(this.value)||0)" style="width:58px;color:${low?'var(--urgent)':'var(--text-primary)'};font-weight:${low?700:400};background:transparent;border:1px solid transparent;border-radius:4px;font-family:var(--font);font-size:12px"></td>
+      <td style="font-size:11px;color:var(--text-muted)">${i.threshold}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${fmtDate(i.updated)||'—'}</td>
+      <td>${low?'<span class="badge b-urgent">Reorder</span>':'<span class="badge b-ok">OK</span>'}</td>
+      <td><button class="row-delete" onclick="delInv('${i.id}')">x</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══ NAV BADGES ═══
+function updateNavBadges(){
+  const t=today(),now=new Date();
+  const total=tasks.filter(x=>(x.priority==='Urgent'||(x.due&&x.due<t))&&x.status!=='Done').length;
+  const tb=document.getElementById('nav-badge-tasks');
+  if(tb){tb.textContent=total;tb.style.display=total?'':'none'}
+  const lowD=dannyMeds.filter(m=>{if(!m.refill)return false;return Math.ceil((new Date(m.refill)-now)/(1000*60*60*24))<=(m.threshold||7)}).length;
+  const mb=document.getElementById('nav-badge-meds');
+  if(mb){mb.textContent=lowD;mb.style.display=lowD?'':'none'}
+  const lowG=gmaMeds.filter(m=>{if(!m.refill)return false;return Math.ceil((new Date(m.refill)-now)/(1000*60*60*24))<=(m.threshold||7)}).length;
+  const gb=document.getElementById('nav-badge-gma-meds');
+  if(gb){gb.textContent=lowG;gb.style.display=lowG?'':'none'}
+}
+
+// ═══ RENDER ALL ═══
+function renderAll(){
+  updateDashboard();
+  renderTasks();
+  renderConditions('danny');renderConditions('grandma');
+  renderMeds('danny');renderMeds('grandma');
+  renderAppts('danny');renderAppts('grandma');
+  renderExp('danny');renderExp('grandma');
+  renderInventory();
+  updateNavBadges();
+}
+
+// ═══ SEED DATA ═══
+if(!localStorage.getItem('cc2_seeded')){
+  localStorage.setItem('cc2_seeded','1');
+  const t=today(),tm=tomorrow();
+  tasks=[
+    {id:uid(),title:'Schedule cardiology follow-up',section:'Health',person:'Danny',status:'To Do',priority:'Urgent',due:t,notes:'Call before 3pm',created:t},
+    {id:uid(),title:'Pick up prescriptions — Metformin & Lisinopril',section:'Health',person:'Danny',status:'In Progress',priority:'High',due:t,notes:'CVS on 5th',created:t},
+    {id:uid(),title:'Grocery run — low-sodium items',section:'House',person:'Danny',status:'To Do',priority:'Normal',due:t,notes:'No processed sugar',created:t},
+    {id:uid(),title:"Grandma's eye doctor transport",section:'Personal',person:'Grandma',status:'To Do',priority:'High',due:tm,notes:'Pick up at 1:30pm, appt 2pm',created:t},
+    {id:uid(),title:"Refill Grandma's blood pressure med",section:'Health',person:'Grandma',status:'To Do',priority:'Urgent',due:t,notes:'Call pharmacy',created:t},
+    {id:uid(),title:'Call insurance re: claim #4482',section:'ATC',person:'You',status:'Blocked',priority:'High',due:'2025-04-30',notes:'Waiting on EOB',created:t},
+    {id:uid(),title:'Review quarterly business report',section:'Business',person:'You',status:'To Do',priority:'Normal',due:tm,notes:'',created:t},
+  ];
+  dannyConditions=[
+    {id:uid(),name:'Type 2 Diabetes',desc:'Diagnosed 2019. Managed with diet, Metformin, monitoring. A1C last check: 7.2.',meds:'Metformin',created:t},
+    {id:uid(),name:'Hypertension',desc:'Stage 1. Monitoring BP daily. Currently on Lisinopril.',meds:'Lisinopril',created:t},
+    {id:uid(),name:'Chronic Back Pain',desc:'Lumbar disc issues L4-L5. Physical therapy ongoing.',meds:'Ibuprofen',created:t},
+  ];
+  dannyMeds=[
+    {id:uid(),name:'Metformin',dose:'500mg twice daily',reason:'Type 2 Diabetes',prescriber:'Dr. Ramirez',refill:tm,threshold:7,schedule:'Morning with breakfast, evening with dinner',notes:'Monitor for GI side effects',created:t},
+    {id:uid(),name:'Lisinopril',dose:'10mg once daily',reason:'Hypertension',prescriber:'Dr. Chen',refill:'2025-06-15',threshold:7,schedule:'Morning',notes:'',created:t},
+    {id:uid(),name:'Vitamin D3',dose:'5000 IU daily',reason:'Deficiency correction',prescriber:'Self',refill:'2025-05-30',threshold:10,schedule:'Morning with food',notes:'',created:t},
+  ];
+  dannyAppts=[
+    {id:uid(),provider:'Dr. Ramirez — Endocrinology',date:t,time:'10:30',location:'Miami Medical Center',prep:'Bring glucose log, fasting 8hrs',outcome:'',created:t},
+    {id:uid(),provider:'Dr. Chen — Cardiology',date:tm,time:'14:00',location:'Telehealth',prep:'Check BP 30 min before',outcome:'',created:t},
+  ];
+  dannyExp=[
+    {id:uid(),idea:'Low-carb Mediterranean diet trial',condition:'Type 2 Diabetes',status:'Active',started:'2025-04-01',outcome:'A1C slightly improved at 4-week check. Continuing.',created:t},
+    {id:uid(),idea:'Magnesium glycinate for sleep & pain',condition:'Chronic Back Pain',status:'Planned',started:'',outcome:'',created:t},
+    {id:uid(),idea:'Walking 20 min after meals',condition:'Type 2 Diabetes',status:'Done',started:'2025-03-01',outcome:'Positive effect on post-meal glucose. Now a daily habit.',created:t},
+  ];
+  inventory=[
+    {id:uid(),med:'Metformin',location:'Home (bathroom)',qty:5,threshold:14,updated:t},
+    {id:uid(),med:'Metformin',location:"Daughter 1's house",qty:30,threshold:7,updated:t},
+    {id:uid(),med:'Lisinopril',location:'Home',qty:28,threshold:7,updated:t},
+  ];
+  gmaConditions=[
+    {id:uid(),name:'Hypertension',desc:'Long-standing. Managed with Amlodipine. BP monitored weekly.',meds:'Amlodipine',created:t},
+    {id:uid(),name:'Macular Degeneration',desc:'Early-stage AMD in right eye. Annual eye exams.',meds:'Preservision AREDS2',created:t},
+    {id:uid(),name:'Osteoporosis',desc:'Diagnosed 2022. On Calcium + Vitamin D. Gentle exercise recommended.',meds:'Calcium, Vitamin D',created:t},
+  ];
+  gmaMeds=[
+    {id:uid(),name:'Amlodipine',dose:'5mg once daily',reason:'Hypertension',prescriber:'Dr. Lopez',refill:t,threshold:7,schedule:'Morning',notes:'',created:t},
+    {id:uid(),name:'Calcium + Vitamin D',dose:'1200mg / 800 IU daily',reason:'Osteoporosis prevention',prescriber:'Dr. Lopez',refill:'2025-06-01',threshold:14,schedule:'With meals',notes:'',created:t},
+    {id:uid(),name:'Preservision AREDS2',dose:'2 softgels daily',reason:'Macular degeneration support',prescriber:'Dr. Nguyen',refill:'2025-07-01',threshold:14,schedule:'With breakfast',notes:'',created:t},
+  ];
+  gmaAppts=[
+    {id:uid(),provider:"Dr. Nguyen — Eye Specialist",date:tm,time:'14:00',location:'South FL Eye Associates',prep:'Transport needed — pick up at 1:30pm',outcome:'',created:t},
+    {id:uid(),provider:'Dr. Lopez — Primary Care',date:'2025-06-10',time:'09:00',location:'Pembroke Pines Medical Group',prep:'BP log, medication list',outcome:'',created:t},
+  ];
+  gmaExp=[
+    {id:uid(),idea:'Chair yoga for mobility & bone density',condition:'Osteoporosis',status:'Active',started:'2025-03-15',outcome:'Positive response. She enjoys it.',created:t},
+    {id:uid(),idea:'Lutein supplement for eye health',condition:'Macular Degeneration',status:'Planned',started:'',outcome:'',created:t},
+  ];
+  notes=[
+    {id:uid(),tag:"Danny — Lab",text:"Danny's next A1C lab should be scheduled for end of June.",created:t},
+    {id:uid(),tag:'Grandma — Pharmacy',text:'Grandma Amlodipine refill is due — call pharmacy today.',created:t},
+    {id:uid(),tag:'Insurance',text:'Claim #4482 still open — follow up with Dr. office for EOB.',created:t},
+  ];
+  save();
+}
+
+
+// ═══ GOOGLE CALENDAR SYNC ═══
+const GCAL_CLIENT_ID = '12201243289-24jojatvnsth37dhpsvjue7t2o1htssb.apps.googleusercontent.com';
+const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const GCAL_KEY = 'cc2_gcal';
+
+let gcalTokenClient = null;
+let gcalAccessToken = localStorage.getItem(GCAL_KEY + '_token') || null;
+let gcalEvents = [];
+let gcalLoaded = false;
+
+// Load Google Identity Services
+function loadGcalScript() {
+  if (document.getElementById('gsi-script')) return;
+  const s = document.createElement('script');
+  s.id = 'gsi-script';
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = () => { gcalLoaded = true; initTokenClient(); if (gcalAccessToken) gcalSync(); };
+  s.onerror = () => setGcalStatus('error', 'Failed to load Google sign-in');
+  document.head.appendChild(s);
+}
+
+function initTokenClient() {
+  if (!window.google) return;
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPES,
+    callback: (resp) => {
+      if (resp.error) { setGcalStatus('error', 'Auth error: ' + resp.error); return; }
+      gcalAccessToken = resp.access_token;
+      localStorage.setItem(GCAL_KEY + '_token', gcalAccessToken);
+      gcalSync();
+    },
+  });
+}
+
+function gcalConnect() {
+  if (!gcalLoaded) { loadGcalScript(); setGcalStatus('syncing', 'Loading Google sign-in...'); return; }
+  if (!gcalTokenClient) { initTokenClient(); }
+  gcalTokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function gcalDisconnect() {
+  gcalAccessToken = null;
+  localStorage.removeItem(GCAL_KEY + '_token');
+  gcalEvents = [];
+  setGcalStatus('disconnected', 'Google Calendar not connected');
+  updateDashboard();
+  renderGcalPage();
+}
+
+function setGcalStatus(state, msg) {
+  const dot = document.getElementById('gcal-dot');
+  const txt = document.getElementById('gcal-status-text');
+  const conn = document.getElementById('gcal-connect-btn');
+  const sync = document.getElementById('gcal-sync-btn');
+  const disc = document.getElementById('gcal-disconnect-btn');
+  const badge = document.getElementById('nav-badge-gcal');
+  const pgConn = document.getElementById('gcal-page-connect-btn');
+  const pgSync = document.getElementById('gcal-page-sync-btn');
+  if (!dot) return;
+  dot.className = 'gcal-dot ' + (state === 'connected' ? 'connected' : state === 'syncing' ? 'syncing' : state === 'error' ? 'error' : '');
+  txt.textContent = msg;
+  txt.className = 'gcal-status ' + (state === 'connected' ? 'connected' : state === 'error' ? 'error' : '');
+  const isConn = state === 'connected';
+  conn.style.display = isConn ? 'none' : '';
+  sync.style.display = isConn ? '' : 'none';
+  disc.style.display = isConn ? '' : 'none';
+  if (badge) badge.style.display = isConn ? '' : 'none';
+  if (pgConn) pgConn.style.display = isConn ? 'none' : '';
+  if (pgSync) pgSync.style.display = isConn ? '' : 'none';
+}
+
+async function gcalSync() {
+  if (!gcalAccessToken) { gcalConnect(); return; }
+  setGcalStatus('syncing', 'Syncing...');
+  try {
+    const now = new Date();
+    const start = new Date(now); start.setHours(0,0,0,0);
+    const end = new Date(now); end.setDate(end.getDate() + 14); end.setHours(23,59,59,999);
+    const url = `https://www.googleapis.com/calendar/v3/calendarList`;
+    const calResp = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
+    if (calResp.status === 401) { gcalAccessToken = null; localStorage.removeItem(GCAL_KEY + '_token'); gcalConnect(); return; }
+    const calData = await calResp.json();
+    const cals = (calData.items || []).filter(c => c.selected !== false);
+    let allEvents = [];
+    for (const cal of cals) {
+      const evUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=50`;
+      const evResp = await fetch(evUrl, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
+      if (!evResp.ok) continue;
+      const evData = await evResp.json();
+      const items = (evData.items || []).filter(e => e.status !== 'cancelled');
+      items.forEach(e => { e._calName = cal.summary; e._calColor = cal.backgroundColor || '#4db8b8'; });
+      // Keep only timed events and all-day events
+      const filtered = items.filter(e => e.start && (e.start.dateTime || e.start.date));
+      allEvents = allEvents.concat(filtered);
+    }
+    // Deduplicate by id
+    const seen = new Set();
+    gcalEvents = allEvents.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; });
+    gcalEvents.sort((a,b) => {
+      const da = a.start.dateTime || a.start.date;
+      const db = b.start.dateTime || b.start.date;
+      return da > db ? 1 : -1;
+    });
+    const count = gcalEvents.length;
+    setGcalStatus('connected', `Synced ${count} event${count!==1?'s':''} · ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`);
+    updateDashboard();
+    renderGcalPage();
+  } catch(e) {
+    console.error('GCal sync error:', e);
+    setGcalStatus('error', 'Sync failed — check console');
+  }
+}
+
+function gcalToday() {
+  const t = today();
+  return gcalEvents.filter(e => {
+    const d = e.start.dateTime ? e.start.dateTime.slice(0,10) : e.start.date;
+    return d === t;
+  });
+}
+
+function gcalTomorrow() {
+  const tm = tomorrow();
+  return gcalEvents.filter(e => {
+    const d = e.start.dateTime ? e.start.dateTime.slice(0,10) : e.start.date;
+    return d === tm;
+  });
+}
+
+function gcalFmtTime(e) {
+  if (e.start.date && !e.start.dateTime) return null; // all-day
+  const dt = new Date(e.start.dateTime);
+  return dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+function gcalEventHtml(e, colorClass) {
+  const isAllDay = !e.start.dateTime;
+  const time = isAllDay ? 'All Day' : gcalFmtTime(e);
+  const timeClass = isAllDay ? 'gcal-event-time allday' : `gcal-event-time`;
+  return `<div class="gcal-event">
+    <span class="${timeClass}" style="${!isAllDay?'color:'+esc(e._calColor||'var(--accent-gold)'):''}"> ${esc(time)}</span>
+    <div class="gcal-event-body">
+      <div class="gcal-event-title">${esc(e.summary||'(No title)')}</div>
+      <div class="gcal-event-cal">${esc(e._calName||'')}</div>
+    </div>
+  </div>`;
+}
+
+function renderGcalPage() {
+  const el = document.getElementById('gcal-page-content'); if(!el) return;
+  if (!gcalAccessToken || !gcalEvents.length) {
+    el.innerHTML = gcalAccessToken
+      ? '<div class="empty" style="padding:2rem">No upcoming events found in the next 14 days.</div>'
+      : `<div class="coming-soon"><div class="cs-icon">📅</div><h3>Connect Google Calendar</h3><p>Click "Connect" above to sign in with Google and sync your appointments and all-day events.</p></div>`;
+    return;
+  }
+  const t = today(), tm = tomorrow();
+  const todayEvts = gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===t);
+  const tmEvts = gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)===tm);
+  const futureEvts = gcalEvents.filter(e=>(e.start.dateTime||e.start.date).slice(0,10)>tm);
+  let html = '';
+  if (todayEvts.length) {
+    html += `<div class="gcal-section"><div class="gcal-section-label"><span class="ctdot danny" style="display:inline-block"></span>Today</div>${todayEvts.map(e=>gcalEventHtml(e)).join('')}</div>`;
+  }
+  if (tmEvts.length) {
+    html += `<div class="gcal-section"><div class="gcal-section-label"><span class="ctdot gold" style="display:inline-block"></span>Tomorrow</div>${tmEvts.map(e=>gcalEventHtml(e)).join('')}</div>`;
+  }
+  if (futureEvts.length) {
+    // Group by date
+    const byDate = {};
+    futureEvts.forEach(e=>{const d=(e.start.dateTime||e.start.date).slice(0,10);if(!byDate[d])byDate[d]=[];byDate[d].push(e)});
+    Object.keys(byDate).sort().forEach(d=>{
+      const label = new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      html += `<div class="gcal-section"><div class="gcal-section-label"><span style="color:var(--text-muted)">${esc(label)}</span></div>${byDate[d].map(e=>gcalEventHtml(e)).join('')}</div>`;
+    });
+  }
+  el.innerHTML = html || '<div class="empty" style="padding:2rem">No events in the next 14 days.</div>';
+}
+
+// Patch updateDashboard to also inject GCal events into the dashboard
+const _origUpdateDashboard = updateDashboard;
+function updateDashboardWithGcal() {
+  _origUpdateDashboard();
+  // Inject GCal today events into Danny's appt panel
+  const todayGcal = gcalToday();
+  const tmGcal = gcalTomorrow();
+  if (todayGcal.length) {
+    const dannyApptEl = document.getElementById('dash-danny-appts');
+    if (dannyApptEl) {
+      const gcalHtml = todayGcal.map(e=>{
+        const isAllDay = !e.start.dateTime;
+        const time = isAllDay ? 'All Day' : gcalFmtTime(e);
+        return `<div class="appt-row"><span class="appt-time" style="color:var(--accent-gold);min-width:52px">${esc(time)}</span><div><div class="appt-provider">${esc(e.summary||'(No title)')}</div><div class="appt-loc" style="color:var(--accent-gold);opacity:0.7">${esc(e._calName||'Google Calendar')}</div></div></div>`;
+      }).join('');
+      const existing = dannyApptEl.innerHTML;
+      if (existing.includes('No appointments today')) {
+        dannyApptEl.innerHTML = gcalHtml;
+      } else {
+        dannyApptEl.innerHTML = existing + '<div class="divider"></div>' + gcalHtml;
+      }
+    }
+  }
+  // Inject GCal tomorrow into looking-ahead
+  if (tmGcal.length) {
+    const aheadEl = document.getElementById('dash-tomorrow');
+    if (aheadEl) {
+      const gcalHtml = tmGcal.map(e=>{
+        const isAllDay = !e.start.dateTime;
+        const time = isAllDay ? 'All Day' : gcalFmtTime(e);
+        return `<div class="ahead-item"><span class="ahead-icon">📅</span><span style="font-size:10px;font-weight:700;color:var(--accent-gold)">GCAL</span><span style="font-weight:600;color:var(--text-primary)">${esc(time)}</span><span style="color:var(--text-secondary)">${esc(e.summary||'(No title)')}</span></div>`;
+      }).join('');
+      const existing = aheadEl.innerHTML;
+      if (existing.includes('Nothing scheduled')) {
+        aheadEl.innerHTML = gcalHtml;
+      } else {
+        aheadEl.innerHTML = existing + gcalHtml;
+      }
+    }
+  }
+}
+// Override updateDashboard globally
+const updateDashboard = updateDashboardWithGcal;
+
+// Auto-load GIS script and try to sync if we have a saved token
+loadGcalScript();
+if (gcalAccessToken) {
+  setGcalStatus('syncing', 'Reconnecting to Google Calendar...');
+}
+
+renderAll();
+</script>
+</body>
+</html>
