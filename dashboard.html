@@ -968,7 +968,7 @@ function expStatusBadge(s){const m={'Planned':'b-info','Active':'b-warn','Done':
 function sectionStrip(s){const m={'Health':'health','Business':'biz','House':'house','ATC':'atc','Misc':'misc','Personal':'personal'};return`<span class="sec-strip ss-${m[s]||'misc'}"></span>`}
 
 // ═══ DASHBOARD ═══
-function updateDashboard(){
+function _updateDashboard(){
   const t=today(),tm=tomorrow(),now=new Date();
 
   // helpers
@@ -1443,9 +1443,8 @@ function renderGcalPage() {
 }
 
 // Patch updateDashboard to also inject GCal events into the dashboard
-const _origUpdateDashboard = updateDashboard;
-function updateDashboardWithGcal() {
-  _origUpdateDashboard();
+function updateDashboard() {
+  _updateDashboard();
   // Inject GCal today events into Danny's appt panel
   const todayGcal = gcalToday();
   const tmGcal = gcalTomorrow();
@@ -1483,8 +1482,7 @@ function updateDashboardWithGcal() {
     }
   }
 }
-// Override updateDashboard globally
-const updateDashboard = updateDashboardWithGcal;
+// updateDashboardWithGcal is already named updateDashboard via the wrapper below
 
 // Auto-load GIS script and try to sync if we have a saved token
 loadGcalScript();
